@@ -1,0 +1,1292 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  passwordHash  String?
+  googleId      String?  @unique
+  role          UserRole @default(CLIENT)
+  emailVerified Boolean  @default(false)
+  lastLoginAt   DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  termsAcceptedAt   DateTime?
+  termsVersion      String?
+  privacyAcceptedAt DateTime?
+  privacyVersion    String?
+
+  // Profile
+  name      String?
+  avatarUrl String?
+
+  // MFA (TOTP)
+  mfaEnabled     Boolean         @default(false)
+  mfaTotpSecret  String?
+  mfaBackupCodes MfaBackupCode[]
+
+  bots                          Bot[]
+  refreshTokens                 RefreshToken[]
+  emailTokens                   EmailVerificationToken[]
+  passwordResetTokens           PasswordResetToken[]
+  metaSessions                  MetaConnectSession[]
+  whatsappSessions              WhatsappConnectSession[]
+  googleCalendarConnectSessions GoogleCalendarConnectSession[]
+  googleCalendarConnections     GoogleCalendarConnection[]
+
+  openaiUsages OpenAIUsage[]
+
+  // =========================
+  // REFERRALS (NEW)
+  // =========================
+
+  // If this user is an allowed referrer/partner, this row exists.
+  referralPartner ReferralPartner?
+
+  // If this user was referred by someone else, their attributions live here.
+  referralAttributionsAsLead ReferralAttribution[] @relation("ReferredUserAttributions")
+
+  // If this user signed up via a referral link, store the code used.
+  referralCodeId String?
+  referralCode   ReferralCode? @relation(fields: [referralCodeId], references: [id])
+  referredAt     DateTime?
+
+  // NEW: Mobile devices
+  mobileDevices MobileDevice[]
+
+  // Team memberships (access to bots owned by other users)
+  teamMemberships TeamMembership[]
+
+  // Invites sent by this user (owner)
+  teamInvitesSent TeamInvite[] @relation("TeamInviteSender")
+
+  // Team memberships granted by this user (owner)
+  teamMembershipsGranted TeamMembership[] @relation("TeamMembershipGranter")
+
+  @@index([referralCodeId])
+}
+
+model MfaBackupCode {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  // Hash of the backup code (never store raw codes)
+  codeHash String
+
+  used      Boolean   @default(false)
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+}
+
+enum UserRole {
+  ADMIN
+  CLIENT
+  REFERRER
+  TEAM_MEMBER
+}
+
+model TeamInvite {
+  id           String   @id @default(uuid())
+  email        String
+  token        String   @unique
+  invitedById  String
+  invitedBy    User     @relation("TeamInviteSender", fields: [invitedById], references: [id])
+  usedAt       DateTime?
+  revokedAt    DateTime?
+  createdAt    DateTime @default(now())
+
+  bots TeamInviteBot[]
+
+  @@index([email])
+  @@index([invitedById])
+}
+
+model TeamInviteBot {
+  id        String     @id @default(uuid())
+  inviteId  String
+  botId     String
+  invite    TeamInvite @relation(fields: [inviteId], references: [id])
+  bot       Bot        @relation(fields: [botId], references: [id])
+  createdAt DateTime   @default(now())
+
+  @@unique([inviteId, botId])
+  @@index([botId])
+}
+
+model TeamMembership {
+  id            String   @id @default(uuid())
+  userId        String
+  botId         String
+  grantedById   String
+  user          User     @relation(fields: [userId], references: [id])
+  bot           Bot      @relation(fields: [botId], references: [id])
+  grantedBy     User     @relation("TeamMembershipGranter", fields: [grantedById], references: [id])
+  createdAt     DateTime @default(now())
+
+  @@unique([userId, botId])
+  @@index([botId])
+  @@index([grantedById])
+}
+
+model Bot {
+  id                     String    @id @default(uuid())
+  userId                 String
+  user                   User      @relation(fields: [userId], references: [id])
+  slug                   String    @unique
+  name                   String
+  description            String?
+  systemPrompt           String
+  knowledgeSource        KnowledgeSource @default(RAG)
+  knowledgeRetrievalProfile KnowledgeRetrievalProfile @default(balanced)
+  knowledgeClientId      String?
+  domain                 String?
+  useDomainCrawler       Boolean   @default(false)
+  usePdfCrawler          Boolean   @default(false)
+  channelWeb             Boolean   @default(true)
+  channelWhatsapp        Boolean   @default(false)
+  channelInstagram       Boolean   @default(false)
+  channelMessenger       Boolean   @default(false)
+  useCalendar            Boolean   @default(false)
+  calendarId             String?
+  timeZone               String?
+  defaultDurationMinutes Int?      @default(30)
+  status                 BotStatus @default(DRAFT)
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+
+  // NEW: automatic per-conversation evaluation toggle
+  autoEvaluateConversations Boolean @default(false)
+
+  channels                      BotChannel[]
+  subscription                  Subscription?
+  conversations                 Conversation[]
+  payments                      Payment[]
+  metaSessions                  MetaConnectSession[]
+  whatsappSessions              WhatsappConnectSession[]
+  googleCalendarConnectSessions GoogleCalendarConnectSession[]
+  googleCalendarConnection      GoogleCalendarConnection?
+
+  openaiUsages OpenAIUsage[]
+
+  // =========================
+  // REFERRALS (NEW)
+  // =========================
+  referralAttributions ReferralAttribution[]
+  referralCommissions  ReferralCommission[]
+
+  // NEW: Booking records
+  bookings        Booking[]
+  bookingServices BookingService[]
+
+  // Team access
+  teamMemberships TeamMembership[]
+  teamInviteBots  TeamInviteBot[]
+
+  // =========================
+  // BOOKING CONFIG (NEW)
+  // =========================
+
+  // Minimum hours between "now" and booking start when creating a booking.
+  // Null = no extra limit (only "must not be in the past").
+  bookingMinLeadHours Int?
+
+  // Maximum days in advance the user can book.
+  // Null = no upper limit.
+  bookingMaxAdvanceDays Int?
+
+  bookingMaxSimultaneousBookings Int?
+
+  // Reminder window before the start time (in hours).
+  // Within this window, reminders are eligible to be sent.
+  bookingReminderWindowHours  Int?
+  // Minimum hours between booking creation and start time for which a reminder will be sent.
+  bookingReminderMinLeadHours Int?
+
+  // Email toggles
+  bookingConfirmationEmailEnabled Boolean @default(true)
+  bookingReminderEmailEnabled     Boolean @default(true)
+
+  // Email templates (optional – fall back to sensible defaults if null)
+  bookingConfirmationSubjectTemplate String?
+  bookingReminderSubjectTemplate     String?
+  bookingCancellationSubjectTemplate String?
+
+  bookingConfirmationBodyTextTemplate String?
+  bookingReminderBodyTextTemplate     String?
+  bookingCancellationBodyTextTemplate String?
+
+  bookingConfirmationBodyHtmlTemplate String?
+  bookingReminderBodyHtmlTemplate     String?
+  bookingCancellationBodyHtmlTemplate String?
+
+  // Which fields the bot should collect for bookings.
+  // NOTE: the backend always requires at least: name, email, service, datetime.
+  bookingRequiredFields String[] @default(["name", "email", "phone", "service", "datetime"])
+
+  bookingWeeklySchedule Json?
+
+  // NEW: Email usage records (for per-plan email limits)
+  emailUsages EmailUsage[]
+
+  leadWhatsappMessages200  Boolean @default(false)
+  leadWhatsappMessages500  Boolean @default(false)
+  leadWhatsappMessages1000 Boolean @default(false)
+
+  // Knowledge crawl tracking (latest job)
+  knowledgeLastCrawlJobId      String?
+  knowledgeLastCrawlDomain     String?
+  knowledgeLastCrawlStartedAt  DateTime?
+  knowledgeLastCrawlFinishedAt DateTime?
+
+  metaLeadAutomations MetaLeadAutomation[]
+  metaLeads           MetaLead[]
+  planUsageAlerts     PlanUsageAlert[]
+
+  // NEW: Shopify integrations
+  shopifyShops ShopifyShop[]
+
+  // =========================
+  // REVENUE AI (NEW)
+  // =========================
+
+  revenueAIEnabled               Boolean @default(false)
+  revenueAIMode                  String  @default("AUTO") // AUTO | SOFT | CLOSER
+  revenueAIOfferEveryXMessages   Int     @default(6)
+  revenueAIMaxOffersPerSession   Int     @default(2)
+  revenueAICooldownMinutes       Int     @default(15)
+  revenueAIDedupeHours           Int     @default(24)
+  revenueAIAttributionWindowHours Int    @default(24)
+  revenueAIGuardrailsEnabled     Boolean @default(true)
+  revenueAIUpsellDeltaMinPct     Int     @default(10)
+  revenueAIUpsellDeltaMaxPct     Int     @default(35)
+  revenueAIMaxRecommendations    Int     @default(3)
+  revenueAIAggressiveness        Float   @default(0.5)
+  revenueAICategoryComplementMap Json?
+
+  revenueAISessions     RevenueAISession[]
+  revenueAIOfferEvents  RevenueAIOfferEvent[]
+  revenueAIOfferActions RevenueAIOfferAction[]
+  revenueAIStyleOverrides RevenueAIStyleOverride[]
+  revenueAIStyleOverrideAudits RevenueAIStyleOverrideAudit[]
+
+  shopCatalogSchemas ShopCatalogSchema[]
+  shopCatalogContexts ShopCatalogContext[]
+  shopifyClerkStates ShopifyClerkState[]
+  shoppingSessionStates ShoppingSessionState[]
+}
+
+model BookingService {
+  id    String @id @default(uuid())
+  botId String
+  bot   Bot    @relation(fields: [botId], references: [id], onDelete: Cascade)
+
+  key     String
+  name    String
+  aliases String[] @default([])
+
+  calendarId              String
+  durationMinutes         Int
+  maxSimultaneousBookings Int?
+  weeklySchedule          Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([botId, key])
+  @@index([botId])
+}
+
+enum BotStatus {
+  DRAFT
+  PENDING_PAYMENT
+  ACTIVE
+  SUSPENDED
+  CANCELED
+}
+
+enum KnowledgeSource {
+  RAG
+  SHOPIFY
+}
+
+enum KnowledgeRetrievalProfile {
+  balanced
+  precise
+  broad
+}
+
+model BotChannel {
+  id          String      @id @default(uuid())
+  botId       String
+  bot         Bot         @relation(fields: [botId], references: [id])
+  type        ChannelType
+  externalId  String
+  accessToken String
+  meta        Json?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@unique([botId, type, externalId], name: "botId_type_externalId")
+  @@index([botId])
+  @@index([type, externalId])
+}
+
+enum ChannelType {
+  WEB
+  WHATSAPP
+  FACEBOOK
+  INSTAGRAM
+}
+
+enum ConversationMode {
+  AI
+  HUMAN
+}
+
+model Subscription {
+  id                   String             @id @default(uuid())
+  botId                String             @unique
+  bot                  Bot                @relation(fields: [botId], references: [id])
+  stripeCustomerId     String
+  stripeSubscriptionId String
+  stripePriceId        String // kept for backwards compatibility (first / primary price)
+  status               SubscriptionStatus
+  currency             String?
+  planSnapshotJson     Json?
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  // selected usage plan for this bot
+  usagePlanId String?
+  usagePlan   UsagePlan? @relation(fields: [usagePlanId], references: [id])
+
+  // =========================
+  // REFERRALS (NEW)
+  // =========================
+  referralAttribution ReferralAttribution?
+  referralCommissions ReferralCommission[]
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  INCOMPLETE
+  INCOMPLETE_EXPIRED
+  TRIALING
+  UNPAID
+}
+
+model Conversation {
+  id             String      @id @default(uuid())
+  botId          String
+  bot            Bot         @relation(fields: [botId], references: [id])
+  channel        ChannelType
+  externalUserId String
+
+  lastMessageAt DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  mode ConversationMode @default(AI)
+
+  memorySummary          String?
+  memorySummaryModel     String?
+  memorySummaryUpdatedAt DateTime?
+
+  // NEW: rate limiting state
+  rateLimitBlockedUntil DateTime?
+  rateLimitStrikeCount  Int       @default(0)
+  rateLimitLastStrikeAt DateTime?
+
+  messages Message[]
+  evals    ConversationEval[]
+
+  revenueAISession    RevenueAISession?
+  revenueAIOfferEvents  RevenueAIOfferEvent[]
+  revenueAIOfferActions RevenueAIOfferAction[]
+  revenueAIStyleOverrides RevenueAIStyleOverride[]
+  revenueAIStyleOverrideAudits RevenueAIStyleOverrideAudit[]
+
+  @@unique([botId, channel, externalUserId], name: "botId_channel_externalUserId")
+}
+
+model Message {
+  id               String       @id @default(uuid())
+  conversationId   String
+  conversation     Conversation @relation(fields: [conversationId], references: [id])
+  role             MessageRole
+  content          String
+  channelMessageId String?
+  createdAt        DateTime     @default(now())
+
+  revenueAIOfferEvents RevenueAIOfferEvent[]
+
+  @@index([conversationId])
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
+  HUMAN
+}
+
+// NEW: stored evaluation(s) for a conversation
+model ConversationEval {
+  id             String       @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+
+  score   Int
+  label   String?
+  details String?
+  model   String
+  isAuto  Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@index([conversationId, createdAt])
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model EmailVerificationToken {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  codeHash  String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+}
+
+//
+// DB-driven feature pricing (LEGACY – still there, but we’ll move to plans)
+//
+model FeaturePrice {
+  id                 String  @id @default(uuid())
+  code               String  @unique // e.g. "DOMAIN_CRAWLER", "PDF_CRAWLER", etc.
+  label              String
+  monthlyAmountCents Int
+  currency           String
+  stripePriceId      String?
+  isActive           Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+//
+// Usage-based plan definition (per bot)
+//
+model UsagePlan {
+  id          String  @id @default(uuid())
+  code        String  @unique // e.g. "STARTER", "GROWTH", "SCALE", "CUSTOM"
+  name        String
+  description String?
+
+  // Token limit per month (for all operations combined).
+  // Null = no limit (or “unlimited”).
+  monthlyTokens Int?
+
+  // NEW: Email limit per month for this plan (per bot).
+  // Null = unlimited emails.
+  monthlyEmails Int?
+
+  monthlyWhatsappLeads Int?
+
+  // Billing info
+  monthlyAmountCents Int
+  currency           String
+  stripePriceId      String? // Stripe recurring price ID for this plan
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  subscriptions Subscription[]
+}
+
+enum PaymentKind {
+  SUBSCRIPTION
+  TOP_UP
+}
+
+//
+// Legal payment / invoice log
+//
+model Payment {
+  id String @id @default(uuid())
+
+  botId String
+  bot   Bot    @relation(fields: [botId], references: [id])
+
+  stripeCustomerId      String
+  stripeSubscriptionId  String?
+  stripeInvoiceId       String?
+  stripePaymentIntentId String?
+
+  amountCents Int
+  currency    String
+  status      String
+
+  // NEW: classify subscription vs top-up
+  kind PaymentKind @default(SUBSCRIPTION)
+
+  // NEW: for TOP_UP payments, how many extra tokens were purchased
+  topupTokens Int?
+
+  billingEmail       String?
+  billingName        String?
+  billingAddressJson Json?
+
+  periodStart DateTime?
+  periodEnd   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+
+  // =========================
+  // REFERRALS (NEW)
+  // =========================
+  referralCommission ReferralCommission?
+}
+
+model MetaConnectSession {
+  id                 String      @id @default(uuid())
+  botId              String
+  bot                Bot         @relation(fields: [botId], references: [id])
+  userId             String
+  user               User        @relation(fields: [userId], references: [id])
+  channelType        ChannelType
+  pagesJson          Json
+  longLivedUserToken String
+  createdAt          DateTime    @default(now())
+
+  @@index([botId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model WhatsappConnectSession {
+  id               String   @id @default(uuid())
+  botId            String
+  bot              Bot      @relation(fields: [botId], references: [id])
+  userId           String
+  user             User     @relation(fields: [userId], references: [id])
+  wabaId           String
+  phoneNumbersJson Json
+  waAccessToken    String
+  createdAt        DateTime @default(now())
+
+  @@index([botId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model GoogleCalendarConnectSession {
+  id String @id @default(uuid())
+
+  botId  String
+  bot    Bot    @relation(fields: [botId], references: [id])
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  accessToken  String
+  refreshToken String?
+  scope        String?
+  tokenType    String?
+  expiryDate   DateTime?
+
+  calendarsJson Json
+
+  createdAt DateTime @default(now())
+
+  @@index([botId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model GoogleCalendarConnection {
+  id String @id @default(uuid())
+
+  botId  String @unique
+  bot    Bot    @relation(fields: [botId], references: [id])
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  accessToken  String
+  refreshToken String?
+  scope        String?
+  tokenType    String?
+  expiryDate   DateTime?
+
+  calendarId       String
+  calendarSummary  String?
+  calendarTimeZone String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model OpenAIUsage {
+  id     String  @id @default(uuid())
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id])
+  botId  String?
+  bot    Bot?    @relation(fields: [botId], references: [id])
+
+  model     String
+  operation String
+
+  promptTokens     Int
+  completionTokens Int
+  totalTokens      Int
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([botId, createdAt])
+}
+
+enum ReferralPartnerStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum ReferralCommissionKind {
+  EARNED
+  REVERSAL
+}
+
+enum ReferralCommissionStatus {
+  PENDING
+  PAID
+}
+
+enum ReferralPayoutStatus {
+  OPEN
+  PAID
+}
+
+enum BookingStatus {
+  ACTIVE
+  CANCELLED
+}
+
+model ReferralPartner {
+  id     String @id @default(uuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
+
+  status ReferralPartnerStatus @default(ACTIVE)
+
+  // 8% = 800 bps
+  commissionBps Int @default(800)
+
+  // Optional: payout info (PayPal email, IBAN, etc.)
+  payoutDetailsJson Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  codes         ReferralCode[]
+  attributions  ReferralAttribution[]
+  commissions   ReferralCommission[]
+  payoutPeriods ReferralPayoutPeriod[]
+}
+
+model ReferralCode {
+  id        String          @id @default(uuid())
+  partnerId String
+  partner   ReferralPartner @relation(fields: [partnerId], references: [id])
+
+  code     String  @unique
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  clicks       ReferralClick[]
+  attributions ReferralAttribution[]
+  referredUsers User[]
+
+  @@index([partnerId])
+}
+
+model ReferralClick {
+  id             String       @id @default(uuid())
+  referralCodeId String
+  referralCode   ReferralCode @relation(fields: [referralCodeId], references: [id])
+
+  landingPath String?
+  referrerUrl String?
+  userAgent   String?
+  ipHash      String?
+
+  createdAt DateTime @default(now())
+
+  @@index([referralCodeId, createdAt])
+}
+
+model ReferralAttribution {
+  id String @id @default(uuid())
+
+  referralCodeId String
+  referralCode   ReferralCode @relation(fields: [referralCodeId], references: [id])
+
+  partnerId String
+  partner   ReferralPartner @relation(fields: [partnerId], references: [id])
+
+  referredUserId String
+  referredUser   User   @relation("ReferredUserAttributions", fields: [referredUserId], references: [id])
+
+  botId String
+  bot   Bot    @relation(fields: [botId], references: [id])
+
+  // Link to your Subscription record once it exists
+  subscriptionId String?       @unique
+  subscription   Subscription? @relation(fields: [subscriptionId], references: [id])
+
+  stripeCustomerId     String?
+  stripeSubscriptionId String  @unique
+
+  checkoutSessionId String?
+
+  startedAt DateTime  @default(now())
+  endedAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Opposite for ReferralCommission.attribution
+  commissions ReferralCommission[]
+
+  @@index([partnerId, startedAt])
+  @@index([referredUserId])
+  @@index([botId])
+}
+
+model ReferralCommission {
+  id String @id @default(uuid())
+
+  partnerId String
+  partner   ReferralPartner @relation(fields: [partnerId], references: [id])
+
+  attributionId String?
+  attribution   ReferralAttribution? @relation(fields: [attributionId], references: [id])
+
+  botId String
+  bot   Bot    @relation(fields: [botId], references: [id])
+
+  subscriptionId String?
+  subscription   Subscription? @relation(fields: [subscriptionId], references: [id])
+
+  paymentId String?  @unique
+  payment   Payment? @relation(fields: [paymentId], references: [id])
+
+  stripeSubscriptionId String
+  stripeInvoiceId      String
+
+  kind   ReferralCommissionKind   @default(EARNED)
+  status ReferralCommissionStatus @default(PENDING)
+
+  amountBaseCents Int
+  commissionCents Int
+  currency        String
+
+  periodStart DateTime?
+  periodEnd   DateTime?
+  monthKey    String // "YYYY-MM"
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([stripeInvoiceId, kind], name: "stripeInvoiceId_kind")
+  @@index([partnerId, monthKey])
+}
+
+model ReferralPayoutPeriod {
+  id String @id @default(uuid())
+
+  partnerId String
+  partner   ReferralPartner @relation(fields: [partnerId], references: [id])
+
+  monthKey    String // "YYYY-MM"
+  currency    String
+  amountCents Int    @default(0)
+
+  status ReferralPayoutStatus @default(OPEN)
+  paidAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([partnerId, monthKey, currency], name: "partnerId_month_currency")
+  @@index([partnerId, monthKey])
+}
+
+// NEW: Booking model
+model Booking {
+  id    String @id @default(uuid())
+  botId String
+  bot   Bot    @relation(fields: [botId], references: [id])
+
+  name    String
+  email   String
+  phone   String
+  service String
+
+  start           DateTime
+  end             DateTime
+  timeZone        String
+  calendarId      String
+  calendarEventId String?
+
+  status BookingStatus @default(ACTIVE) // <-- add this line
+
+  // null until we successfully send a reminder email
+  reminderEmailSentAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([botId, start])
+  @@index([email])
+}
+
+// NEW: Email usage per bot (for plan email quotas)
+model EmailUsage {
+  id        String   @id @default(uuid())
+  botId     String
+  bot       Bot      @relation(fields: [botId], references: [id])
+  kind      String // e.g. "booking_confirmation", "booking_reminder"
+  to        String
+  createdAt DateTime @default(now())
+
+  @@index([botId, createdAt])
+}
+
+model MetaLeadAutomation {
+  id    String @id @default(uuid())
+  botId String
+  bot   Bot    @relation(fields: [botId], references: [id])
+
+  pageId  String // FB page id
+  formId  String // Lead form id
+  enabled Boolean @default(true)
+
+  // How to read the lead:
+  phoneFieldName        String  @default("phone_number") // name in field_data
+  consentFieldName      String? // e.g. "whatsapp_opt_in"
+  requiresWhatsappOptIn Boolean @default(true)
+
+  // What to send:
+  whatsappTemplateName     String // must exist in WABA
+  whatsappTemplateLanguage String // e.g. "en_US"
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([botId, pageId, formId], name: "bot_page_form")
+}
+
+model MetaLead {
+  id    String @id @default(uuid())
+  botId String
+  bot   Bot    @relation(fields: [botId], references: [id])
+
+  pageId     String
+  leadgenId  String  @unique
+  formId     String?
+  adId       String?
+  campaignId String?
+
+  phone         String?
+  whatsappOptIn Boolean @default(false)
+
+  rawPayload Json
+
+  whatsappStatus String  @default("PENDING") // PENDING | SENT | FAILED | SKIPPED
+  whatsappError  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([botId, createdAt])
+}
+
+model MobileDevice {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  expoPushToken String   @unique
+  platform      String
+  createdAt     DateTime @default(now())
+
+  @@index([userId])
+  @@index([expoPushToken])
+}
+
+model PlanUsageAlert {
+  id    String @id @default(uuid())
+  botId String
+  bot   Bot    @relation(fields: [botId], references: [id])
+
+  year      Int // billing year (UTC)
+  month     Int // billing month 1-12 (UTC)
+  threshold Int // 50, 70, 90, 100
+
+  sentAt DateTime @default(now())
+
+  @@unique([botId, year, month, threshold], name: "bot_month_threshold_unique")
+  @@index([botId])
+}
+
+// =========================
+// SHOPIFY (NEW)
+// =========================
+
+model ShopifyShop {
+  id                             String    @id @default(uuid())
+  shopDomain                     String    @unique
+  accessTokenEncrypted           String
+  storefrontAccessTokenEncrypted String?
+  scopes                         String
+  installedAt                    DateTime  @default(now())
+  uninstalledAt                  DateTime?
+  isActive                       Boolean   @default(true)
+  botId                          String?
+  bot                            Bot?      @relation(fields: [botId], references: [id], onDelete: SetNull)
+  shopCurrency                   String?
+  lastProductsSyncAt             DateTime?
+  createdAt                      DateTime  @default(now())
+  updatedAt                      DateTime  @updatedAt
+
+  products   ShopifyProduct[]
+  variants   ShopifyVariant[]
+  dataEvents ShopifyDataEvent[]
+  policies   ShopifyPolicy[]
+}
+
+model ShopifyProduct {
+  id     String      @id @default(uuid())
+  shopId String
+  shop   ShopifyShop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  productId        String
+  title            String
+  handle           String?
+  bodyHtml         String?
+  vendor           String?
+  productType      String?
+  status           String?
+  tags             String[]  @default([])
+  publishedAt      DateTime?
+  shopifyCreatedAt DateTime?
+  shopifyUpdatedAt DateTime?
+  imageUrl         String?
+  priceMin         Decimal?  @db.Decimal(12, 2)
+  priceMax         Decimal?  @db.Decimal(12, 2)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  variants ShopifyVariant[]
+
+  @@unique([shopId, productId], name: "shopId_productId")
+  @@index([shopId])
+  @@index([status])
+}
+
+model ShopifyVariant {
+  id          String         @id @default(uuid())
+  shopId      String
+  shop        ShopifyShop    @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  productDbId String
+  product     ShopifyProduct @relation(fields: [productDbId], references: [id], onDelete: Cascade)
+
+  variantId         String
+  title             String?
+  sku               String?
+  price             Decimal?  @db.Decimal(12, 2)
+  compareAtPrice    Decimal?  @db.Decimal(12, 2)
+  availableForSale  Boolean   @default(false)
+  inventoryQuantity Int?
+  imageUrl          String?
+  selectedOptions   Json?
+  shopifyCreatedAt  DateTime?
+  shopifyUpdatedAt  DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([shopId, variantId], name: "shopId_variantId")
+  @@index([shopId])
+  @@index([productDbId])
+}
+
+model ShopifyPolicy {
+  id               String      @id @default(uuid())
+  shopId           String
+  shop             ShopifyShop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  type             String
+  title            String?
+  body             String?
+  url              String?
+  shopifyUpdatedAt DateTime?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  @@unique([shopId, type], name: "shopId_type")
+  @@index([shopId])
+}
+
+model ShopCatalogSchema {
+  id         String @id @default(uuid())
+  botId      String
+  bot        Bot    @relation(fields: [botId], references: [id], onDelete: Cascade)
+  shopDomain String
+  schemaJson Json
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([botId, shopDomain], name: "ShopCatalogSchema_botId_shopDomain_unique")
+  @@index([botId])
+  @@index([shopDomain])
+}
+
+model ShopCatalogContext {
+  id         String @id @default(uuid())
+  botId      String
+  bot        Bot    @relation(fields: [botId], references: [id], onDelete: Cascade)
+  shopDomain String
+  contextJson Json
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([botId, shopDomain], name: "ShopCatalogContext_botId_shopDomain_unique")
+  @@index([botId])
+  @@index([shopDomain])
+}
+
+model ShopifyClerkState {
+  id                String  @id @default(uuid())
+  botId             String
+  bot               Bot     @relation(fields: [botId], references: [id], onDelete: Cascade)
+  shopDomain        String
+  sessionId         String?
+  conversationId    String?
+  language          String?
+  awaitingBroaden   Boolean @default(false)
+  pendingQuestions  Json?
+  collectedFilters  Json?
+  lastShortlist     Json?
+  rejectedProductIds Json?
+  lastShortlistAt   DateTime?
+  selectedProductId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([botId, sessionId], name: "ShopifyClerkState_botId_sessionId_unique")
+  @@unique([botId, conversationId], name: "ShopifyClerkState_botId_conversationId_unique")
+  @@index([botId])
+  @@index([sessionId])
+  @@index([conversationId])
+}
+
+model ShoppingSessionState {
+  id             String   @id @default(uuid())
+  botId          String
+  bot            Bot      @relation(fields: [botId], references: [id], onDelete: Cascade)
+  conversationId String?
+  sessionId      String?
+  stateJson      Json
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([botId])
+  @@index([conversationId])
+  @@index([sessionId])
+  @@unique([botId, conversationId], name: "ShoppingSessionState_bot_conversation_unique")
+  @@unique([botId, sessionId], name: "ShoppingSessionState_bot_session_unique")
+}
+
+model ShopifyDataEvent {
+  id            String       @id @default(uuid())
+  shopId        String?
+  shop          ShopifyShop? @relation(fields: [shopId], references: [id], onDelete: SetNull)
+  shopDomain    String?
+  customerEmail String?
+  eventType     String
+  webhookId     String?      @unique
+  payloadJson   Json?
+  processedAt   DateTime?
+  createdAt     DateTime     @default(now())
+
+  @@index([shopId])
+  @@index([shopDomain])
+  @@index([eventType])
+}
+
+// =========================
+// REVENUE AI (NEW)
+// =========================
+
+model RevenueAISession {
+  id             String       @id @default(uuid())
+  botId          String
+  bot            Bot          @relation(fields: [botId], references: [id], onDelete: Cascade)
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  assignedStyle   String
+  styleOverride   String?
+  offersShownCount Int        @default(0)
+  lastOfferMessageIndex Int?
+  lastOfferAt     DateTime?
+  lastSuggestedProductIds String[] @default([])
+  lastSuggestedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  offerEvents RevenueAIOfferEvent[]
+
+  @@unique([conversationId])
+  @@index([botId])
+}
+
+model RevenueAIOfferEvent {
+  id             String       @id @default(uuid())
+  botId          String
+  bot            Bot          @relation(fields: [botId], references: [id], onDelete: Cascade)
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  messageId      String?
+  message        Message?     @relation(fields: [messageId], references: [id], onDelete: SetNull)
+  sessionId      String?
+  session        RevenueAISession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+
+  offerType         String
+  stage             String
+  suggestedProductId String
+  baseProductId     String?
+  styleUsed         String
+  meta              Json?
+  timestamp         DateTime @default(now())
+
+  createdAt DateTime @default(now())
+  actions   RevenueAIOfferAction[]
+
+  @@index([botId])
+  @@index([timestamp])
+  @@index([conversationId])
+  @@index([offerType])
+}
+
+model RevenueAIOfferAction {
+  id             String       @id @default(uuid())
+  eventId        String
+  event          RevenueAIOfferEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  botId          String
+  bot            Bot          @relation(fields: [botId], references: [id], onDelete: Cascade)
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  action       String
+  idempotencyKey String?
+  orderId      String?
+  revenueCents Int?
+  currency     String?
+  meta         Json?
+  timestamp    DateTime @default(now())
+
+  createdAt DateTime @default(now())
+
+  @@index([botId])
+  @@index([timestamp])
+  @@index([action])
+  @@index([eventId])
+  @@unique([idempotencyKey])
+}
+
+model RevenueAIStyleOverride {
+  id              String   @id @default(uuid())
+  botId           String
+  bot             Bot      @relation(fields: [botId], references: [id], onDelete: Cascade)
+  conversationId  String?
+  conversation    Conversation? @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sessionId       String?
+  styleOverride   String
+  expiresAt       DateTime?
+  createdByUserId String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([botId])
+  @@index([conversationId])
+  @@index([sessionId])
+  @@index([expiresAt])
+}
+
+model RevenueAIStyleOverrideAudit {
+  id              String   @id @default(uuid())
+  botId           String
+  bot             Bot      @relation(fields: [botId], references: [id], onDelete: Cascade)
+  conversationId  String?
+  conversation    Conversation? @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sessionId       String?
+  fromStyle       String?
+  toStyle         String?
+  expiresAt       DateTime?
+  createdByUserId String?
+  createdAt       DateTime @default(now())
+
+  @@index([botId])
+  @@index([conversationId])
+  @@index([sessionId])
+  @@index([createdAt])
+}

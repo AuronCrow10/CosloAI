@@ -1,0 +1,465 @@
+// bots/config.ts
+
+import { prisma } from "../prisma/prisma";
+import { Bot as DbBot, BotChannel, ChannelType } from "@prisma/client";
+import {
+  KnowledgeRetrievalProfile,
+  resolveKnowledgeRetrievalProfile
+} from "../knowledge/knowledgeRetrievalProfiles";
+
+type WeekdayKey =
+  | "monday"
+  | "tuesday"
+  | "wednesday"
+  | "thursday"
+  | "friday"
+  | "saturday"
+  | "sunday";
+
+type BookingTimeWindow = {
+  start: string; // "HH:MM"
+  end: string; // "HH:MM"
+  maxSimultaneousBookings?: number | null;
+};
+
+export type BookingWeeklySchedule = Partial<Record<WeekdayKey, BookingTimeWindow[]>>;
+
+export type BookingServiceConfig = {
+  key: string;
+  name: string;
+  aliases?: string[];
+  calendarId: string;
+  durationMinutes: number;
+  maxSimultaneousBookings?: number | null;
+  weeklySchedule?: BookingWeeklySchedule | null;
+};
+
+// Base booking config, extended with optional advanced fields.
+// Static demo bots can omit advanced fields; DB bots will have them filled.
+export type BookingConfig =
+  | { enabled: false }
+  | {
+      enabled: true;
+      provider: "google_calendar";
+      timeZone: string;
+      calendarId?: string; // legacy single-calendar fallback
+      defaultDurationMinutes?: number; // legacy single-calendar fallback
+
+      // Advanced booking rules (optional, normalized downstream)
+      minLeadHours?: number | null;
+      maxAdvanceDays?: number | null;
+      maxSimultaneousBookings?: number | null;
+
+      // Reminder timing (optional, normalized downstream)
+      reminderWindowHours?: number | null;
+      reminderMinLeadHours?: number | null;
+
+      // Email toggles
+      bookingConfirmationEmailEnabled?: boolean;
+      bookingReminderEmailEnabled?: boolean;
+
+      // Email templates (optional)
+      bookingConfirmationSubjectTemplate?: string | null;
+      bookingReminderSubjectTemplate?: string | null;
+      bookingCancellationSubjectTemplate?: string | null;
+      bookingConfirmationBodyTextTemplate?: string | null;
+      bookingReminderBodyTextTemplate?: string | null;
+      bookingCancellationBodyTextTemplate?: string | null;
+      bookingConfirmationBodyHtmlTemplate?: string | null;
+      bookingReminderBodyHtmlTemplate?: string | null;
+      bookingCancellationBodyHtmlTemplate?: string | null;
+
+      // Booking fields for this bot
+      requiredFields?: string[];
+      customFields?: string[];
+      services?: BookingServiceConfig[];
+    };
+
+// Channels config
+export type WebChannelConfig = {
+  enabled: boolean;
+};
+
+export type WhatsAppChannelConfig = {
+  phoneNumberId: string;
+};
+
+export type FacebookChannelConfig = {
+  pageId: string; // Facebook Page ID
+  pageAccessToken?: string; // optional: per-bot page token
+};
+
+export type InstagramChannelConfig = {
+  igBusinessId: string; // Instagram Business Account ID
+  pageAccessToken?: string; // optional: per-bot page token
+};
+
+export type BotChannels = {
+  web?: WebChannelConfig;
+  whatsapp?: WhatsAppChannelConfig;
+  facebook?: FacebookChannelConfig;
+  instagram?: InstagramChannelConfig;
+};
+
+export type DemoBotConfig = {
+  id: string;
+  slug: string;
+  name: string;
+  knowledgeSource?: "RAG" | "SHOPIFY";
+  knowledgeClientId: string | null;
+  knowledgeRetrievalProfile?: KnowledgeRetrievalProfile;
+  domain: string;
+  systemPrompt: string;
+  booking?: BookingConfig;
+  channels?: BotChannels;
+  description?: string;
+
+  // Revenue AI settings (DB bots only; demo defaults fall back)
+  revenueAIEnabled?: boolean;
+  revenueAIMode?: "AUTO" | "SOFT" | "CLOSER";
+  revenueAIOfferEveryXMessages?: number;
+  revenueAIMaxOffersPerSession?: number;
+  revenueAICooldownMinutes?: number;
+  revenueAIDedupeHours?: number;
+  revenueAIAttributionWindowHours?: number;
+  revenueAIGuardrailsEnabled?: boolean;
+  revenueAIUpsellDeltaMinPct?: number;
+  revenueAIUpsellDeltaMaxPct?: number;
+  revenueAIMaxRecommendations?: number;
+  revenueAIAggressiveness?: number;
+  revenueAICategoryComplementMap?: any;
+
+  // NEW: for usage attribution
+  ownerUserId?: string | null;
+  botId?: string | null;
+};
+
+// --- HARDCODED DEMO BOTS (fallback) ---
+
+const DEMO_BOTS: DemoBotConfig[] = [
+  {
+    id: "1",
+    slug: "cosmin-marica",
+    name: "Cosmin Marica Full Stack Developer",
+    knowledgeSource: "RAG",
+    knowledgeClientId: "fba15b42-da66-402f-84dc-13aafa6ddc38",
+    knowledgeRetrievalProfile: "balanced",
+    domain: "cosminmarica.dev",
+    systemPrompt:
+      "You are the helpful assistant for Cosmin, a full stack web and blockchain developer. Answer only using information from the provided CONTEXT.",
+    description: "Cosmin's Virtual AI Assistant",
+    booking: {
+      enabled: true,
+      provider: "google_calendar",
+      calendarId:
+        "611eccf5c3e127d2498eee1f5d2dc33afdc8e550d31a1302328f5bd610c7daea@group.calendar.google.com",
+      timeZone: "Europe/Rome",
+      defaultDurationMinutes: 60
+      // Advanced options omitted for static demo → normalized later with defaults
+    },
+    channels: {
+      web: { enabled: true },
+      whatsapp: {
+        phoneNumberId: "885569401305770" // example
+      },
+      facebook: {
+        pageId: "843684242170165"
+      },
+      instagram: {
+        igBusinessId: "17841401887023191"
+      }
+    }
+    // ownerUserId / botId are undefined for static demo bots
+  }
+  // ... other static demo bots if you want ...
+];
+
+// --- Helper: booking fields ---
+
+const BASE_BOOKING_FIELDS = [
+  "name",
+  "email",
+  "phone",
+  "service",
+  "datetime"
+];
+
+function computeBookingFields(
+  dbFields?: string[] | null
+): { required: string[]; custom: string[] } {
+  const set = new Set<string>();
+
+  // From DB config (if any)
+  for (const raw of dbFields || []) {
+    const trimmed = raw.trim();
+    if (trimmed) set.add(trimmed);
+  }
+
+  // Always ensure base fields exist
+  for (const base of BASE_BOOKING_FIELDS) {
+    set.add(base);
+  }
+
+  const required = Array.from(set);
+  const custom = required.filter(
+    (f) => !BASE_BOOKING_FIELDS.includes(f)
+  );
+
+  return { required, custom };
+}
+
+// --- Helper: map DB Bot (+ channels) -> DemoBotConfig ---
+
+function buildChannelsFromDb(
+  dbBot: DbBot & { channels: BotChannel[] }
+): BotChannels | undefined {
+  const channels: BotChannels = {};
+
+  if (dbBot.channelWeb) {
+    channels.web = { enabled: true };
+  }
+
+  for (const ch of dbBot.channels) {
+    if (ch.type === "WHATSAPP") {
+      channels.whatsapp = {
+        phoneNumberId: ch.externalId
+      };
+    } else if (ch.type === "FACEBOOK") {
+      channels.facebook = {
+        pageId: ch.externalId,
+        pageAccessToken: ch.accessToken || undefined
+      };
+    } else if (ch.type === "INSTAGRAM") {
+      channels.instagram = {
+        igBusinessId: ch.externalId,
+        pageAccessToken: ch.accessToken || undefined
+      };
+    }
+  }
+
+  return Object.keys(channels).length > 0 ? channels : undefined;
+}
+
+function buildBookingFromDb(
+  dbBot: DbBot & { bookingServices?: any[] }
+): BookingConfig | undefined {
+  if (!dbBot.useCalendar) return { enabled: false };
+
+  if (!dbBot.timeZone) {
+    // Calendar feature flagged on but config incomplete ? treat as disabled for safety
+    return { enabled: false };
+  }
+
+  const { required, custom } = computeBookingFields(
+    // this field is added in the updated Prisma schema
+    (dbBot as any).bookingRequiredFields ?? undefined
+  );
+
+  const services =
+    Array.isArray((dbBot as any).bookingServices) &&
+    (dbBot as any).bookingServices.length > 0
+      ? (dbBot as any).bookingServices.map((s: any) => ({
+          key: s.key,
+          name: s.name,
+          aliases: Array.isArray(s.aliases) ? s.aliases : [],
+          calendarId: s.calendarId,
+          durationMinutes: s.durationMinutes,
+          maxSimultaneousBookings:
+            typeof s.maxSimultaneousBookings === "number"
+              ? s.maxSimultaneousBookings
+              : null,
+          weeklySchedule: (s.weeklySchedule as BookingWeeklySchedule) ?? null
+        }))
+      : null;
+
+  const hasLegacyCalendar =
+    !!dbBot.calendarId && !!dbBot.defaultDurationMinutes;
+
+  const legacyService: BookingServiceConfig | null =
+    !services && hasLegacyCalendar
+      ? {
+          key: "general",
+          name: "General",
+          aliases: [],
+          calendarId: dbBot.calendarId as string,
+          durationMinutes: dbBot.defaultDurationMinutes as number,
+          maxSimultaneousBookings:
+            typeof (dbBot as any).bookingMaxSimultaneousBookings === "number"
+              ? (dbBot as any).bookingMaxSimultaneousBookings
+              : null,
+          weeklySchedule:
+            ((dbBot as any).bookingWeeklySchedule as BookingWeeklySchedule) ??
+            null
+        }
+      : null;
+
+  return {
+    enabled: true,
+    provider: "google_calendar",
+    timeZone: dbBot.timeZone,
+    calendarId: dbBot.calendarId ?? undefined,
+    defaultDurationMinutes: dbBot.defaultDurationMinutes ?? undefined,
+
+    // Advanced rules (may be null in DB, normalized downstream)
+    minLeadHours: (dbBot as any).bookingMinLeadHours ?? null,
+    maxAdvanceDays: (dbBot as any).bookingMaxAdvanceDays ?? null,
+    maxSimultaneousBookings:
+      (dbBot as any).bookingMaxSimultaneousBookings ?? null,
+    reminderWindowHours: (dbBot as any).bookingReminderWindowHours ?? null,
+    reminderMinLeadHours:
+      (dbBot as any).bookingReminderMinLeadHours ?? null,
+
+    // Email toggles + templates (from DB)
+    bookingConfirmationEmailEnabled:
+      (dbBot as any).bookingConfirmationEmailEnabled ?? true,
+    bookingReminderEmailEnabled:
+      (dbBot as any).bookingReminderEmailEnabled ?? true,
+
+    bookingConfirmationSubjectTemplate:
+      (dbBot as any).bookingConfirmationSubjectTemplate ?? null,
+    bookingReminderSubjectTemplate:
+      (dbBot as any).bookingReminderSubjectTemplate ?? null,
+    bookingCancellationSubjectTemplate: // NEW
+      (dbBot as any).bookingCancellationSubjectTemplate ?? null,
+
+    bookingConfirmationBodyTextTemplate:
+      (dbBot as any).bookingConfirmationBodyTextTemplate ?? null,
+    bookingReminderBodyTextTemplate:
+      (dbBot as any).bookingReminderBodyTextTemplate ?? null,
+    bookingCancellationBodyTextTemplate: // NEW
+      (dbBot as any).bookingCancellationBodyTextTemplate ?? null,
+
+    bookingConfirmationBodyHtmlTemplate:
+      (dbBot as any).bookingConfirmationBodyHtmlTemplate ?? null,
+    bookingReminderBodyHtmlTemplate:
+      (dbBot as any).bookingReminderBodyHtmlTemplate ?? null,
+    bookingCancellationBodyHtmlTemplate: // NEW
+      (dbBot as any).bookingCancellationBodyHtmlTemplate ?? null,
+
+    requiredFields: required,
+    customFields: custom,
+    services: services ?? (legacyService ? [legacyService] : undefined)
+  };
+}
+
+function mapDbBotToDemoConfig(
+  dbBot: DbBot & { channels: BotChannel[]; bookingServices?: any[] }
+): DemoBotConfig {
+  return {
+    id: dbBot.id,
+    slug: dbBot.slug,
+    name: dbBot.name,
+    knowledgeSource: (dbBot as any).knowledgeSource ?? "RAG",
+    knowledgeClientId: dbBot.knowledgeClientId,
+    knowledgeRetrievalProfile: resolveKnowledgeRetrievalProfile(
+      (dbBot as any).knowledgeRetrievalProfile
+    ),
+    domain: dbBot.domain || "",
+    systemPrompt: dbBot.systemPrompt,
+    description: dbBot.description || undefined,
+    booking: buildBookingFromDb(dbBot),
+    channels: buildChannelsFromDb(dbBot),
+
+    revenueAIEnabled: (dbBot as any).revenueAIEnabled ?? false,
+    revenueAIMode: (dbBot as any).revenueAIMode ?? "AUTO",
+    revenueAIOfferEveryXMessages:
+      (dbBot as any).revenueAIOfferEveryXMessages ?? 6,
+    revenueAIMaxOffersPerSession:
+      (dbBot as any).revenueAIMaxOffersPerSession ?? 2,
+    revenueAICooldownMinutes:
+      (dbBot as any).revenueAICooldownMinutes ?? 15,
+    revenueAIDedupeHours: (dbBot as any).revenueAIDedupeHours ?? 24,
+    revenueAIAttributionWindowHours:
+      (dbBot as any).revenueAIAttributionWindowHours ?? 24,
+    revenueAIGuardrailsEnabled:
+      (dbBot as any).revenueAIGuardrailsEnabled ?? true,
+    revenueAIUpsellDeltaMinPct:
+      (dbBot as any).revenueAIUpsellDeltaMinPct ?? 10,
+    revenueAIUpsellDeltaMaxPct:
+      (dbBot as any).revenueAIUpsellDeltaMaxPct ?? 35,
+    revenueAIMaxRecommendations:
+      (dbBot as any).revenueAIMaxRecommendations ?? 3,
+    revenueAIAggressiveness:
+      typeof (dbBot as any).revenueAIAggressiveness === "number"
+        ? (dbBot as any).revenueAIAggressiveness
+        : 0.5,
+    revenueAICategoryComplementMap:
+      (dbBot as any).revenueAICategoryComplementMap ?? null,
+
+    // NEW: link back to DB entities for usage tracking
+    ownerUserId: dbBot.userId,
+    botId: dbBot.id
+  };
+}
+
+// --- PUBLIC API ---
+
+export async function getBotConfigBySlug(
+  slug: string
+): Promise<DemoBotConfig | null> {
+  // 1) DB first
+  const dbBot = await prisma.bot.findUnique({
+    where: { slug },
+    include: { channels: true, bookingServices: true }
+  });
+
+  if (dbBot) {
+    return mapDbBotToDemoConfig(dbBot);
+  }
+
+  // 2) fallback to static DEMO_BOTS (for legacy/demo)
+  const fallback = DEMO_BOTS.find((bot) => bot.slug === slug) ?? null;
+  return fallback;
+}
+
+export type PublicBotConfig = Pick<
+  DemoBotConfig,
+  "slug" | "name" | "description"
+>;
+
+// Inverse lookups DB-first, then fallback to static DEMO_BOTS
+
+export async function getBotSlugByFacebookPageId(
+  pageId: string
+): Promise<string | null> {
+  const channel = await prisma.botChannel.findFirst({
+    where: {
+      type: "FACEBOOK",
+      externalId: pageId
+    },
+    include: { bot: true }
+  });
+
+  if (channel?.bot) {
+    return channel.bot.slug;
+  }
+
+  const bot = DEMO_BOTS.find(
+    (b) =>
+      b.channels?.facebook && b.channels.facebook.pageId === pageId
+  );
+  return bot ? bot.slug : null;
+}
+
+export async function getBotSlugByInstagramBusinessId(
+  igBusinessId: string
+): Promise<string | null> {
+  const channel = await prisma.botChannel.findFirst({
+    where: {
+      type: "INSTAGRAM",
+      externalId: igBusinessId
+    },
+    include: { bot: true }
+  });
+
+  if (channel?.bot) {
+    return channel.bot.slug;
+  }
+
+  const bot = DEMO_BOTS.find(
+    (b) =>
+      b.channels?.instagram &&
+      b.channels.instagram.igBusinessId === igBusinessId
+  );
+  return bot ? bot.slug : null;
+}

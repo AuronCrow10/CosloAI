@@ -1,0 +1,33 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "86c6b8d4223a6f07691eea4980543115"
+name = "Coslo AI"
+application_url = "https://coslo.it"
+embedded = true
+
+[webhooks]
+api_version = "2026-01"
+
+  # Compliance / GDPR webhooks (customers/data_request, customers/redact, shop/redact)
+  [[webhooks.subscriptions]]
+  compliance_topics = ["customers/data_request"]
+  uri = "https://coslo.it/api/shopify/webhooks/customers/data_request"
+
+  [[webhooks.subscriptions]]
+  compliance_topics = ["customers/redact"]
+  uri = "https://coslo.it/api/shopify/webhooks/customers/redact"
+
+  [[webhooks.subscriptions]]
+  compliance_topics = ["shop/redact"]
+  uri = "https://coslo.it/api/shopify/webhooks/shop/redact"
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "read_fulfillments,read_inventory,read_orders,read_products,read_legal_policies,write_script_tags"
+optional_scopes = [ ]
+use_legacy_install_flow = false
+
+[auth]
+redirect_urls = [
+  "https://coslo.it/api/shopify/auth/callback"
+]

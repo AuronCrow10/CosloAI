@@ -1,0 +1,78 @@
+# -----------------------------
+# Secrets / environment
+# -----------------------------
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.*.example
+.envrc
+
+# Keys / certificates
+*.pem
+*.key
+*.p8
+*.p12
+*.jks
+*.mobileprovision
+
+# -----------------------------
+# Dependencies / package managers
+# -----------------------------
+**/node_modules/
+
+# -----------------------------
+# Build outputs / caches
+# -----------------------------
+**/dist/
+**/dist-ssr/
+**/build/
+**/coverage/
+**/.cache/
+**/.turbo/
+**/.vite/
+**/.parcel-cache/
+**/*.tsbuildinfo
+
+# Expo / React Native generated artifacts
+**/.expo/
+**/web-build/
+**/android/
+**/ios/
+
+# -----------------------------
+# Logs
+# -----------------------------
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# -----------------------------
+# Editor / OS files
+# -----------------------------
+.vscode/
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+*.suo
+*.sw?
+
+# -----------------------------
+# Local temporary / backup artifacts
+# -----------------------------
+*.tmp
+*.temp
+*.bak
+*.orig
+*.rar
+*.zip
+.tmp_*
+
+# -----------------------------
+# Project-specific generated folders
+# -----------------------------
+WebScrapper/storage/

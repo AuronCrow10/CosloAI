@@ -1,0 +1,3279 @@
+﻿{
+  "auth": {
+    "forgotPassword": {
+      "email": "Email",
+      "submit": "Send Reset Code",
+      "subtitle": "Enter your email to receive a reset code",
+      "title": "Reset Password"
+    },
+    "legalNotice": {
+      "and": "and",
+      "p1": "By continuing, you agree to the",
+      "privacy": "Privacy & Data Policy",
+      "terms": "Terms & Conditions"
+    },
+    "login": {
+      "email": "Email",
+      "forgotPassword": "Forgot password?",
+      "google": "Sign in with Google",
+      "noAccount": "Don't have an account?",
+      "password": "Password",
+      "signUp": "Sign up",
+      "submit": "Sign In",
+      "subtitle": "Sign in to your account",
+      "title": "Welcome Back"
+    },
+    "mfa": {
+      "submit": "Verify",
+      "subtitle": "Enter the code from your authenticator app",
+      "title": "Two-Factor Authentication"
+    },
+    "register": {
+      "email": "Email",
+      "google": "Sign up with Google",
+      "hasAccount": "Already have an account?",
+      "name": "Full Name",
+      "password": "Password",
+      "requirements": {
+        "length": "At least 8 characters",
+        "number": "One number",
+        "special": "One special character",
+        "uppercase": "One uppercase letter"
+      },
+      "signIn": "Sign in",
+      "submit": "Create Account",
+      "subtitle": "Start building AI assistants today",
+      "title": "Create Account"
+    },
+    "notAuthorized": {
+      "title": "Not Authorized",
+      "body": "You don't have permission to access this page."
+    }
+  },
+  "billing": {
+    "activeSubscriptions": "Active subscriptions",
+    "breakdown": {
+      "features": "Features",
+      "plan": "Plan"
+    },
+    "cancel": {
+      "confirm": "Cancel this subscription at the end of the current billing period?",
+      "cta": "Cancel subscription",
+      "error": "Failed to cancel subscription.",
+      "processing": "Canceling?",
+      "scheduled": "Cancellation scheduled",
+      "success": "Cancellation scheduled. Your plan stays active until the end of the current billing period.",
+      "successWithDate": "Cancellation scheduled. Your plan stays active until {{date}}.",
+      "until": "until"
+    },
+    "details": "Details",
+    "emails": "Emails",
+    "errors": {
+      "invoiceDownloadFailed": "Failed to download invoice.",
+      "invoiceUnavailable": "Invoice is not available for this payment.",
+      "loadFailed": "Failed to load billing overview"
+    },
+    "invoice": {
+      "ariaDownload": "Download invoice",
+      "ariaOpening": "Opening invoice…",
+      "labelDownload": "Download invoice",
+      "labelOpening": "Opening invoice",
+      "srDownload": "Download invoice",
+      "srOpening": "Opening invoice",
+      "titleDownload": "Download invoice",
+      "titleOpening": "Opening…"
+    },
+    "loading": "Loading billing data...",
+    "noActiveSubscriptions": "You don't have any active subscriptions yet.",
+    "noConfiguredLimit": "(no configured limit)",
+    "of": "of",
+    "paymentHistory": {
+      "empty": "No payments recorded yet.",
+      "table": {
+        "actions": "Actions",
+        "amount": "Amount",
+        "bot": "Bot",
+        "date": "Date",
+        "period": "Period",
+        "status": "Status"
+      },
+      "title": "Payment history"
+    },
+    "payments": {
+      "topUpTag": "Top up"
+    },
+    "perMonth": "month",
+    "slugLabel": "Slug",
+    "subscriptionStatus": {
+      "active": "Active",
+      "canceled": "Canceled",
+      "incomplete": "Incomplete",
+      "incompleteExpired": "Incomplete (expired)",
+      "pastDue": "Past due",
+      "trial": "Trial",
+      "unpaid": "Unpaid"
+    },
+    "subtitle": "See your active bot subscriptions, usage this month and payment history.",
+    "thisMonth": "This month:",
+    "title": "Billing & usage",
+    "tokens": "Energy",
+    "tokensHint": "Tokens include OpenAI, knowledge, emails and WhatsApp templates.",
+    "topUp": {
+      "basePlanInfo": "Current plan: {{price}} / month, {{tokens}} tokens",
+      "buttonLabel": "Add extra tokens for this period",
+      "checkoutCta": "Proceed to secure checkout",
+      "description": "Top-ups let you temporarily increase your token limit for the current billing period. You'll pay immediately and receive extra tokens right away.",
+      "errors": {
+        "checkoutFailed": "Top-up checkout failed. Please try again.",
+        "checkoutMissingUrl": "Unable to start checkout for this top-up.",
+        "loadFailed": "Unable to load top-up options."
+      },
+      "loading": "Loading available top-up options...",
+      "noOptions": "No top-up options available.",
+      "optionDetails": "+{{tokens}} tokens for {{amount}}",
+      "optionLabel": "+{{percent}}% tokens for {{price}}% of monthly price",
+      "processing": "Processing...",
+      "title": "Token top-up"
+    },
+    "totalMonthlyAcrossAllBots": "Total monthly across all bots:",
+    "unlimited": "Unlimited",
+    "usageStatus": {
+      "atLimit": "At limit",
+      "healthyUsage": "Healthy usage",
+      "highUsage": "High usage",
+      "overLimit": "Over limit"
+    },
+    "usageThisPeriod": "Usage this period",
+    "whatsappLeads": "WhatsApp leads"
+  },
+  "botChannels": {
+    "actions": {
+      "addChannel": "Add channel",
+      "cancel": "Cancel",
+      "close": "Close",
+      "connectFacebook": "Connect Facebook",
+      "connectInstagram": "Connect Instagram",
+      "connectSelected": "Connect selected",
+      "connectWhatsapp": "Connect WhatsApp",
+      "connecting": "Connecting...",
+      "connectingWhatsapp": "Connecting WhatsApp...",
+      "create": "Create",
+      "disconnect": "Disconnect",
+      "edit": "Edit",
+      "reconnectFacebook": "Reconnect Facebook",
+      "reconnectInstagram": "Reconnect Instagram",
+      "reconnectWhatsapp": "Reconnect WhatsApp",
+      "save": "Save"
+    },
+    "backToBot": "← Back to overview",
+    "confirm": {
+      "deleteChannel": "Delete this channel?"
+    },
+    "connectSocial": {
+      "connectedAccount": "Linked business account",
+      "connectedNumber": "Connected number",
+      "connectedPage": "Connected page",
+      "facebookDesc": "Connect a Facebook Page so your bot can respond via Messenger.",
+      "instagramDesc": "Connect an Instagram Business account to reply to DMs.",
+      "subtitle": "Use Meta login to connect your Facebook Page, Instagram Business account or WhatsApp Business number. We'll store the necessary tokens securely and keep your bot responding.",
+      "title": "Connect social channels",
+      "whatsappDesc": "Connect a WhatsApp Business number using embedded signup."
+    },
+    "connected": {
+      "empty": "No channels connected yet.",
+      "emptyHint": "Choose an available channel above to get started.",
+      "emptyTitle": "No channels connected yet",
+      "subtitle": "Review and manage all channels attached to this bot.",
+      "title": "Connected channels"
+    },
+    "sections": {
+      "available": {
+        "subtitle": "Connect a channel to let your bot respond where customers already are.",
+        "title": "Available channels"
+      },
+      "connected": {
+        "subtitle": "Manage the channels currently connected to this bot.",
+        "title": "Connected channels"
+      }
+    },
+    "types": {
+      "facebook": "Facebook",
+      "instagram": "Instagram",
+      "webWidget": "Web Widget",
+      "whatsapp": "WhatsApp"
+    },
+    "webWidget": {
+      "copyCta": "Copy script",
+      "copied": "Copied",
+      "cta": "Get install script",
+      "description": "Embed a lightweight widget on your website to chat with visitors.",
+      "meta": "Always on. No authentication required.",
+      "modalInstructions": "Copy and paste this into your site's <head> or before </body>.",
+      "modalTitle": "Install Web Widget",
+      "statusAvailable": "Available",
+      "title": "Web Widget"
+    },
+    "create": {
+      "metaWarning": "Facebook/Instagram channels must be connected via the Meta connect buttons above.",
+      "title": "Add channel"
+    },
+    "edit": {
+      "title": "Edit channel"
+    },
+    "errors": {
+      "createFailed": "Failed to create channel",
+      "deleteFailed": "Failed to delete channel",
+      "facebookConnectFailed": "Failed to start Facebook connection",
+      "instagramConnectFailed": "Failed to start Instagram connection",
+      "loadFailed": "Failed to load channels",
+      "metaAttachFailed": "Failed to attach Meta page",
+      "metaManagedExternally": "Facebook and Instagram channels are managed via Meta. To update them, disconnect and reconnect using the buttons above.",
+      "metaMustUseConnect": "Facebook/Instagram channels must be connected via the Meta connect buttons above.",
+      "metaSessionLoad": "Failed to load Meta session",
+      "updateFailed": "Failed to update channel",
+      "whatsappAttachFailed": "Failed to attach WhatsApp number",
+      "whatsappCancelled": "WhatsApp signup was cancelled or did not complete.",
+      "whatsappEnvMissing": "WhatsApp signup is not configured. Please set VITE_META_APP_ID and VITE_WHATSAPP_EMBEDDED_CONFIG_ID.",
+      "whatsappInitFailed": "Failed to initialize WhatsApp signup",
+      "whatsappSignupFailed": "Failed to complete WhatsApp embedded signup"
+    },
+    "fields": {
+      "accessToken": "Access token",
+      "externalId": "External ID",
+      "metaJson": "Meta (JSON)",
+      "type": "Type"
+    },
+    "generic": {
+      "externalId": "External ID: {{id}}"
+    },
+    "labels": {
+      "facebookPage": "Facebook Page",
+      "instagramBusiness": "Instagram Business Profile",
+      "webWidget": "Web widget",
+      "whatsapp": "WhatsApp",
+      "whatsappBusiness": "WhatsApp Business"
+    },
+    "loading": "Loading channels...",
+    "meta": {
+      "connectedViaMeta": "Connected via Meta",
+      "instagramEligiblePagesLabel": "Page with Instagram Business account",
+      "instagramHint": "Only pages with an attached Instagram Business account can be used for Instagram.",
+      "loadingPages": "Loading Meta pages...",
+      "permissionsDialog": {
+        "checkboxLabel": "I understand and agree to grant this access.",
+        "continueFacebook": "Continue with Facebook",
+        "continueInstagram": "Continue with Instagram",
+        "facebook": {
+          "businessManagement": "Access Facebook assets (Pages and Instagram accounts) you manage in Meta Business Manager in order to connect them to this bot.",
+          "pagesManageMetadata": "Manage Page messaging settings and webhooks so we can receive new messages in real time.",
+          "pagesMessaging": "Read and send messages on your connected Page so your bot can reply to people via Messenger.",
+          "pagesShowList": "See the list of Facebook Pages you manage so you can choose which Page to connect."
+        },
+        "footerNote": "You can revoke this access at any time from your Facebook and Instagram account settings.",
+        "instagram": {
+          "businessManagement": "Access Facebook assets (Pages and Instagram accounts) you manage in Meta Business Manager in order to connect them to this bot.",
+          "instagramBasic": "Read basic profile information (name, username, profile picture) of your Instagram Business account to show it inside the dashboard.",
+          "instagramManageMessages": "Read and send Instagram Direct messages so your bot can reply to DMs.",
+          "pagesManageMetadata": "Manage Page messaging settings and webhooks so we can receive new Instagram messages in real time.",
+          "pagesShowList": "See the Facebook Pages linked to your Instagram Business account so you can choose which one to connect."
+        },
+        "introFacebook": "Before you continue with Facebook, please review the access this app will receive from Meta.",
+        "introInstagram": "Before you continue with Instagram, please review the access this app will receive from Meta.",
+        "listTitle": "We will be able to:",
+        "titleFacebook": "Review access for Facebook",
+        "titleInstagram": "Review access for Instagram"
+      },
+      "selectModal": {
+        "businessGroupTitle": "Business managed pages",
+        "editPreviousSettingsHint": "If you expected to see Instagram pages here, when the Facebook popup opens click \"Edit previous settings\" and make sure you select both your Facebook page and the connected Instagram account.",
+        "introFacebook": "We retrieved the Facebook Pages you can manage from Meta. Choose one Page to connect to this bot.",
+        "introInstagram": "We retrieved the Facebook Pages linked to your Instagram Business accounts. Choose one Page to connect.",
+        "noPages": "No eligible pages were found for this connection.",
+        "personalGroupTitle": "Personal pages",
+        "titleFacebook": "Select a Facebook Page",
+        "titleInstagram": "Select a Page for Instagram"
+      },
+      "selectPlaceholder": "Select a page...",
+      "selectSubtitle": "We retrieved the pages you manage from Meta. Choose which one to link to this bot.",
+      "selectTitle": "Select {{channel}}",
+      "sessionLoadFailed": "Failed to load Meta session"
+    },
+    "missingId": "Missing bot ID.",
+    "onboarding": {
+      "channels": {
+        "finalHint": "You can change channels later in Bot settings without restarting onboarding.",
+        "finalSubtitle": "Choose where your assistant will answer customers. You can connect now and refine later.",
+        "finalTitle": "Connect Your Channels",
+        "finish": "Finish onboarding",
+        "how1": "Connect Meta if you want replies on Facebook or Instagram.",
+        "how2": "Connect WhatsApp if you want the assistant on your business number.",
+        "how3": "Install the Web Widget script to chat with website visitors.",
+        "meta": {
+          "disabledBody": "Meta inbox is disabled for this bot. Turn it on above if you want to connect Facebook or Instagram.",
+          "subtitle": "Connect your Facebook page and Instagram Business account so Coslo can reply to messages automatically.",
+          "title": "Meta inbox (Facebook & Instagram)",
+          "toggleOff": "Meta inbox is OFF",
+          "toggleOffHint": "Keep Meta inbox disabled if you don't want Coslo to reply on Facebook or Instagram for this bot.",
+          "toggleOn": "Meta inbox is ON"
+        },
+        "next": "Continue to bookings",
+        "subtitle": "Connect at least one channel now. You can always add more later from the dashboard.",
+        "title": "Where should Coslo talk with your customers?",
+        "whyBody": "Your assistant can only answer where it is connected. Configure channels now to go live faster with a consistent experience.",
+        "whyTitle": "Why connect channels now",
+        "whatsapp": {
+          "disabledBody": "WhatsApp is disabled for this bot. Turn it on above if you want to connect a number.",
+          "subtitle": "Connect a WhatsApp Business number using the official Meta embedded signup flow.",
+          "title": "WhatsApp Business (embedded signup)",
+          "toggleOff": "WhatsApp is OFF",
+          "toggleOffHint": "Keep WhatsApp disabled if you don't want Coslo to send messages on WhatsApp for this bot.",
+          "toggleOn": "WhatsApp is ON"
+        }
+      },
+      "common": {
+        "skip": "Skip for now"
+      }
+    },
+    "placeholders": {
+      "metaJson": "{\n  \"example\": true\n}"
+    },
+    "status": {
+      "active": "Active",
+      "connected": "Connected",
+      "connectedUnknownExpiry": "Connected (expiry unknown)",
+      "expired": "Expired",
+      "expiringSoon": "Expiring soon",
+      "needsReconnect": "Needs reconnect",
+      "notConnected": "Not connected"
+    },
+    "subtitle": "Connect your bot to web, WhatsApp, Facebook Pages and Instagram Business profiles.",
+    "table": {
+      "actions": "Actions",
+      "details": "Details",
+      "status": "Status",
+      "type": "Type"
+    },
+    "title": "Channels",
+    "web": {
+      "defaultWidget": "Default website widget",
+      "externalId": "External ID: {{id}}"
+    },
+    "whatsapp": {
+      "confirmReconnectWithinWeek": "You recently connected WhatsApp. Start a new embedded signup anyway?",
+      "number": "Number: {{number}}",
+      "numberId": "Number ID: {{id}}",
+      "numberLabel": "WhatsApp number",
+      "pinLabel": "WhatsApp two-step verification PIN",
+      "pinModal": {
+        "intro": "Select the WhatsApp Business phone number you want to connect and enter the two-step verification PIN for that number.",
+        "pinHint": "Enter exactly the same 6-digit PIN you see under Two-step verification for this phone number in WhatsApp Manager.",
+        "step1": "Open WhatsApp Manager and go to Account tools → Phone numbers.",
+        "step2": "Click the gear icon next to your phone number and open Two-step verification.",
+        "step3": "If you don't remember the PIN, turn off two-step verification from there (you'll get an email), then set a new 6-digit PIN.",
+        "step4": "Come back here and enter that exact 6-digit PIN.",
+        "title": "Connect WhatsApp Business",
+        "whatIsPin": "This PIN is the 6-digit two-step verification PIN configured for this phone number in WhatsApp Manager, not your Google Authenticator code or login 2FA."
+      },
+      "pinPlaceholder": "6-digit PIN set in WhatsApp Manager",
+      "selectNumberSubtitle": "We retrieved the WhatsApp numbers in your WhatsApp Business account. Choose which one to link to this bot.",
+      "selectNumberTitle": "Select WhatsApp number",
+      "selectPlaceholder": "Select a number..."
+    }
+  },
+  "botConversations": {
+    "actions": {
+      "evaluate": "Evaluate",
+      "evaluateSelected": "Evaluate selected",
+      "evaluateSelectedCount": "Evaluate selected ({{count}})",
+      "evaluating": "Evaluating...",
+      "evaluatingSelected": "Evaluating selected...",
+      "reevaluate": "Re-evaluate",
+      "view": "View"
+    },
+    "backToBot": "← Back to overview",
+    "empty": "No conversations yet.",
+    "errors": {
+      "bulkEvalFailed": "Failed to bulk evaluate conversations",
+      "evalFailed": "Failed to evaluate conversation",
+      "loadFailed": "Failed to load conversations",
+      "someFailed": "Some conversations could not be evaluated (e.g. too short or other errors)."
+    },
+    "loading": "Loading conversations...",
+    "missingId": "Missing bot ID.",
+    "notEvaluated": "Not evaluated",
+    "pagination": {
+      "next": "Next",
+      "pageOf": "Page {{page}} of {{totalPages}}",
+      "prev": "Previous",
+      "total": "Total conversations: {{total}}"
+    },
+    "subtitle": "All conversations across web, WhatsApp, Facebook Messenger and Instagram.",
+    "table": {
+      "actions": "Actions",
+      "channel": "Channel",
+      "externalUser": "External user",
+      "lastMessage": "Last message",
+      "score": "Score",
+      "selectAll": "Select all conversations on this page",
+      "selectRow": "Select conversation"
+    },
+    "title": "Conversations"
+  },
+  "botCreate": {
+    "actions": {
+      "create": "Create bot",
+      "creating": "Creating..."
+    },
+    "errors": {
+      "createFailed": "Failed to create bot",
+      "slugAllowedChars": "Slug can contain only lowercase letters, numbers, and hyphens (-).",
+      "slugLowercase": "Slug must use lowercase letters only. Remove uppercase characters.",
+      "slugNoSpaces": "Slug cannot contain spaces.",
+      "slugRequired": "Slug is required.",
+      "slugTaken": "This slug is already in use. Choose a different one."
+    },
+    "fields": {
+      "description": "Description (optional)",
+      "descriptionPlaceholder": "Describe what this bot will do...",
+      "name": "Name",
+      "slug": "Slug",
+      "slugHelp": "Used in demo URLs, widget, and internal routing.",
+      "namePlaceholder": "My Support Bot",
+      "slugPlaceholder": "my-support-bot"
+    },
+    "onboarding": {
+      "descriptionPlaceholder": "Optional. A short sentence about what this bot does.",
+      "intro": "This information is used in the dashboard and in your internal tools, not in the public widget.",
+      "namePlaceholder": "e.g. Acme Support Assistant",
+      "slugRules": "Use only lowercase letters (a-z), numbers (0-9), and hyphens (-). Example: acme-support.",
+      "slugPlaceholder": "e.g. acme-support",
+      "subtitle": "Give your assistant a name and a short description. You can change this later.",
+      "title": "Create your first Coslo bot"
+    },
+    "subtitle": "Step 1: choose a name and a slug. You can configure channels, knowledge, bookings and billing after this.",
+    "title": "Create new bot"
+  },
+  "botDetails": {
+    "actions": {
+      "activatePay": "Activate & Pay",
+      "cancelEditName": "Cancel",
+      "editName": "Edit bot name",
+      "openDemo": "Open demo",
+      "updateSystemPrompt": "Update system prompt",
+      "saveBasics": "Save basics",
+      "saveName": "Save bot name",
+      "saving": "Saving...",
+      "viewPlanBilling": "Usage plans"
+    },
+    "basics": {
+      "autoEvalHelp": "Automatically score conversations in the background to help you monitor quality. This uses your bot's energy plan but does not affect users.",
+      "autoEvalLabel": "Automatic conversation evaluation",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "Short description of what this bot does...",
+      "subtitle": "High-level description and core behavior for this assistant.",
+      "systemPromptHelp": "This is not shown to end users. Use it to define tone, boundaries and special rules for the bot.",
+      "systemPromptLabel": "System prompt (advanced behavior)",
+      "systemPromptPlaceholder": "Internal instructions the AI must always follow...",
+      "title": "Bot basics"
+    },
+    "billing": {
+      "manage": "Manage plan & billing",
+      "perMonth": "month",
+      "title": "Current billing",
+      "totalPerMonth": "Total per month"
+    },
+    "channels": {
+      "missing": {
+        "facebookPageId": "Facebook Page ID",
+        "instagramBusinessId": "Instagram Business ID",
+        "webDomain": "Web domain",
+        "whatsappExternalId": "WhatsApp external ID"
+      },
+      "names": {
+        "instagram": "Instagram DM",
+        "messenger": "Facebook Messenger",
+        "web": "Web",
+        "whatsapp": "WhatsApp"
+      }
+    },
+    "errorTitle": "Error",
+    "errors": {
+      "loadBot": "Failed to load bot",
+      "loadPricing": "Unable to load current plan pricing.",
+      "nameRequired": "Bot name is required.",
+      "updateBot": "Failed to update bot"
+    },
+    "health": {
+      "badges": {
+        "allChannelsConfigured": "All enabled channels configured",
+        "configured": "Configured",
+        "disabled": "Disabled",
+        "enabledNotConfigured": "Enabled, not configured",
+        "enabledNotInitialized": "Enabled, not initialized",
+        "noChannelsEnabled": "No channels enabled",
+        "shopifyChecking": "Checking Shopify connection...",
+        "shopifyConnected": "Shopify store is connected.",
+        "shopifyNotConnected": "Shopify is selected, but no store is connected yet.",
+        "someChannelsNeedSetup": "Some channels need setup"
+      },
+      "botStatus": {
+        "active": "This bot is active and ready to handle conversations.",
+        "draft": "This bot is not active yet. You can activate it from the billing flow.",
+        "inactive": "This bot is currently not active. Check your plan & billing or contact support if this is unexpected."
+      },
+      "botStatusTitle": "Bot status",
+      "calendar": {
+        "configured": "Bookings use Google Calendar ({{calendarId}}) in {{timeZone}}, with default duration of {{duration}} minutes.",
+        "disabled": "Google Calendar bookings are disabled. You can enable them in Features & Plan.",
+        "enabledNotConfigured": "Calendar bookings are enabled, but calendar ID, time zone or duration are missing.",
+        "goToSettings": "Go to Bookings"
+      },
+      "calendarTitle": "Calendar status",
+      "channels": {
+        "and": "and",
+        "enabledList": "Enabled channels: {{channels}}. All of them have the required configuration.",
+        "goToChannels": "Go to Channels",
+        "missingConfig": "Some enabled channels are missing required configuration: {{missing}}.",
+        "none": "No channels are enabled yet. Enable them in"
+      },
+      "channelsTitle": "Channels status",
+      "eval": {
+        "automatic": "Automatic",
+        "automaticDesc": "New conversations may be automatically scored in the background to help you monitor quality.",
+        "manual": "Manual only",
+        "manualDesc": "Conversations are only evaluated when you trigger it manually from the Conversations section."
+      },
+      "evalTitle": "Conversation evaluation",
+      "knowledge": {
+        "configured": "Knowledge base is created and can be used for answers.",
+        "disabled": "Domain crawler / PDF ingestion are disabled for this bot.",
+        "enabledNotInitialized": "Knowledge features are enabled, but no crawl/upload has initialized the knowledge base yet.",
+        "goToKnowledge": "Go to Knowledge",
+        "goToShopify": "Go to Shopify",
+        "shopifyChecking": "Checking Shopify connection...",
+        "shopifyConnected": "Shopify store is connected and ready.",
+        "shopifyNotConnected": "Shopify knowledge is selected, but no store is connected yet.",
+        "source": {
+          "rag": {
+            "description": "Use your website pages and uploaded documents as the bot's knowledge base.",
+            "title": "Website / docs (RAG)"
+          },
+          "shopify": {
+            "description": "Answer questions directly from your connected Shopify products and variants.",
+            "title": "Shopify catalog"
+          }
+        }
+      },
+      "knowledgeTitle": "Knowledge status",
+      "leadAds": {
+        "configured": "Lead Ads -> WhatsApp is fully configured: Facebook page, WhatsApp number and automation rule are set.",
+        "disabled": "Lead Ads -> WhatsApp is not enabled for this bot. Connect Facebook and WhatsApp channels to activate it.",
+        "enabledNotConfigured": "Lead Ads -> WhatsApp is enabled but some pieces still need configuration:",
+        "goToChannels": "Go to Channels",
+        "missingAutomation": "Lead Ads automation not configured",
+        "missingFacebook": "Facebook channel not connected",
+        "missingWhatsapp": "WhatsApp channel not connected"
+      },
+      "revenueAI": {
+        "title": "Revenue AI",
+        "disabled": "Revenue AI is disabled. Turn it on to start showing product suggestions.",
+        "configured": "Revenue AI is enabled and ready. Suggestions appear inside live conversations.",
+        "missingShopify": "Revenue AI needs a connected Shopify store. Link your shop to enable it.",
+        "goToSettings": "Go to Revenue AI"
+      },
+      "leadAdsTitle": "Lead Ads -> WhatsApp",
+      "title": "Health overview"
+    },
+    "loading": "Loading bot...",
+    "missingId": "Missing bot ID.",
+    "nav": {
+      "adsSettings": "Lead ADS Settings",
+      "adsSettingsDesc": "Manage your lead ads settings",
+      "channels": "Channels",
+      "channelsDesc": "Connect WhatsApp, website, Facebook and Instagram.",
+      "conversations": "Conversations",
+      "conversationsDesc": "Review user chats and debug bot behavior.",
+      "featuresPlan": "Features",
+      "featuresPlanDesc": "Enable channels, crawlers and choose the usage plan.",
+      "planDesc": "Choose a usage plan",
+      "knowledge": "Content & Knowledge",
+      "knowledgeDesc": "Upload documents and configure how the bot learns.",
+      "settings": "Booking Settings",
+      "settingsDesc": "Manage your booking settings",
+      "shopify": "Shopify",
+      "shopifyDesc": "Connect a Shopify store and enable commerce tools."
+    },
+    "notFoundTitle": "Bot not found",
+    "slugLabel": "Slug:",
+    "success": {
+      "basicsUpdated": "Bot basics updated successfully.",
+      "nameUpdated": "Bot name updated."
+    },
+    "workspace": {
+      "subtitle": "Jump to configuration and monitoring areas for this bot.",
+      "title": "Bot workspace"
+    },
+    "systemPromptTemplates": {
+      "title": "System prompt template",
+      "hint": "Choose a style template to prefill the prompt (you can edit it).",
+      "helper": "Choose the behavior style for this assistant.",
+      "select": "Select a template",
+      "minimal": {
+        "label": "Minimal + Direct",
+        "value": "You are the assistant for my business.\n\nTone:\n- Clear, direct, and concise.\n- Prefer short sentences.\n\nFormat:\n- Use short paragraphs.\n- Use bullet points only if listing 3+ items.\n\nCTA:\n- Ask at most one follow-up question when needed."
+      },
+      "warm": {
+        "label": "Warm + Helpful",
+        "value": "You are the assistant for my business.\n\nTone:\n- Friendly, welcoming, and professional.\n- Sound human and approachable.\n\nFormat:\n- Use short paragraphs.\n- Offer brief summaries before details.\n\nCTA:\n- If the user is unclear, ask 1-2 clarifying questions.\n- Offer the next step (contact or booking) when appropriate."
+      },
+      "premium": {
+        "label": "Premium + Expert",
+        "value": "You are the assistant for my business.\n\nTone:\n- Confident, polished, and premium.\n- Avoid casual language.\n\nFormat:\n- Use structured bullet points for clarity.\n- Keep responses under 120 words unless asked for detail.\n\nCTA:\n- Invite the user to request a tailored proposal when relevant."
+      }
+    }
+  },
+  "botFeatures": {
+    "actions": {
+      "backToBot": "← Back to overview",
+      "cancelSubscription": "Cancel subscription",
+      "cancelling": "Cancelling...",
+      "next": "Next: choose plan & pay",
+      "save": "Save features",
+      "saving": "Saving...",
+      "viewChangePlan": "View / change plan"
+    },
+    "calendar": {
+      "description": "Let the bot schedule meetings directly in your Google Calendar, with availability checks and time zones handled for you.",
+      "title": "Google Calendar bookings"
+    },
+    "channels": {
+      "instagram": {
+        "description": "Reply to Instagram direct messages automatically with your bot.",
+        "title": "Instagram DM"
+      },
+      "messenger": {
+        "description": "Answer questions directly on your Facebook page via Messenger.",
+        "title": "Facebook Messenger"
+      },
+      "web": {
+        "description": "Embed a chat widget on your site and get a hosted demo link to share with your customers.",
+        "title": "Web widget & hosted demo"
+      },
+      "whatsapp": {
+        "description": "Connect your bot to WhatsApp so customers can chat with you from anywhere.",
+        "title": "WhatsApp"
+      }
+    },
+    "errors": {
+      "cancelSubscription": "Failed to cancel subscription.",
+      "loadBot": "Failed to load bot",
+      "saveFeatures": "Failed to update bot features"
+    },
+    "groups": {
+      "calendar": "Bookings & calendar",
+      "channels": "Channels",
+      "knowledge": "Knowledge features",
+      "leadAds": "Lead Ads"
+    },
+    "knowledge": {
+      "source": {
+        "rag": {
+          "description": "Use your website pages and uploaded documents as the bot's knowledge base.",
+          "title": "Website / docs (RAG)"
+        },
+        "shopify": {
+          "description": "Answer questions directly from your connected Shopify products and variants.",
+          "title": "Shopify catalog"
+        }
+      }
+    },
+    "leadAds": {
+      "whatsapp": {
+        "description": "Automatically send a WhatsApp message to new leads from your Meta lead forms.",
+        "requiresWhatsapp": "This feature requires the WhatsApp channel to be enabled.",
+        "selectTier": "Select a WhatsApp messages tier",
+        "title": "Lead Ads → WhatsApp",
+        "tier200": "200 WhatsApp messages / month",
+        "tier500": "500 WhatsApp messages / month",
+        "tier1000": "1000 WhatsApp messages / month"
+      }
+    },
+    "side": {
+      "nextNote": "You'll be redirected to a Stripe checkout page to confirm your subscription.",
+      "statusLabel": "Status:",
+      "subtitle": "Step 2 – choose a usage plan and confirm payment. The total price is: features subtotal + usage plan.",
+      "title": "Plan & billing"
+    },
+    "subtitle": "Step 1 – configure channels, crawlers and booking for {{botName}}. These options influence your subscription price.",
+    "success": {
+      "saved": "Features updated.",
+      "subscriptionCanceled": "Subscription canceled and bot deactivated."
+    },
+    "title": "Features"
+  },
+  "botKnowledge": {
+    "actions": {
+      "crawlNow": "Crawl domain now",
+      "crawling": "Crawling...",
+      "estimateTokens": "Estimate energy",
+      "estimating": "Estimating...",
+      "saveKnowledgeSettings": "Save knowledge settings",
+      "uploading": "Uploading and ingesting documents…"
+    },
+    "backToBot": "← Back to overview",
+    "chunks": {
+      "backToHistory": "Back to crawl history",
+      "chunkLabel": "Chunk #{{index}}",
+      "confirm": {
+        "delete": "Permanently delete this chunk?"
+      },
+      "delete": "Delete",
+      "deleting": "Deleting...",
+      "empty": "No chunks found for this job.",
+      "errors": {
+        "deleteFailed": "Failed to delete chunk",
+        "loadFailed": "Failed to load job chunks",
+        "saveFailed": "Failed to save chunk"
+      },
+      "finishedLabel": "Finished",
+      "jobIdLabel": "Job ID",
+      "jobSubtitle": "Source: {{origin}}",
+      "jobTitle": "Job details",
+      "loading": "Loading chunks...",
+      "missingId": "Missing bot or job ID.",
+      "save": "Save",
+      "saving": "Saving...",
+      "sourceLabel": "Source URL",
+      "startedLabel": "Started",
+      "subtitle": "Edit and delete chunks for {{botName}}.",
+      "success": {
+        "deleted": "Chunk {{chunkId}} deleted.",
+        "saved": "Chunk {{chunkId}} updated."
+      },
+      "title": "Job chunks"
+    },
+    "confirm": {
+      "crawlEstimate": "Estimated Energy cost: ~{{tokens}} energy.\nRemaining this month: {{remaining}} energy.\n\nStart crawling now?",
+      "crawlEstimateNoLimit": "Estimated Energy cost: ~{{tokens}} energy.\n\nStart crawling now?",
+      "deactivateJob": "Deactivate all chunks for this job?",
+      "uploadDocsEstimate": "Estimated Energy cost: ~{{tokens}} energy.\n\nDo you want to upload and ingest these documents now?"
+    },
+    "docsCard": {
+      "description": "Upload PDFs and other documents to enrich the bot's knowledge with manuals, FAQs or product sheets.",
+      "disabledNote": "PDF ingestion is disabled for this bot. Enable it in",
+      "supportedFormats": "Supported formats: PDF, DOC, DOCX, TXT.",
+      "title": "Documents & PDFs",
+      "uploadLabel": "Upload one or more files"
+    },
+    "domainCard": {
+      "description": "Configure the website to crawl and refine how the bot should use it in answers.",
+      "disabledNote": "Domain crawler is disabled for this bot. Enable it in",
+      "domainNote": "This domain is used when crawling your site and as context for knowledge search.",
+      "title": "Domain knowledge"
+    },
+    "errors": {
+      "crawlFailed": "Failed to crawl domain",
+      "crawlLimitExceeded": "This crawl would exceed your monthly limit ({{required}} needed, {{remaining}} remaining).",
+      "deactivateFailed": "Failed to deactivate job chunks.",
+      "domainCrawlerDisabled": "Domain crawler feature is disabled for this bot.",
+      "domainRequired": "Please set a domain before crawling.",
+      "estimateFailed": "Failed to estimate crawl cost.",
+      "estimateStillRunning": "Estimate is still running. Please try again in a moment.",
+      "loadBot": "Failed to load bot",
+      "mustBeActiveToCrawl": "This bot is not active yet. Activate it before crawling content.",
+      "mustBeActiveToUpload": "This bot is not active yet. Activate it before uploading documents.",
+      "pdfUploadDisabled": "PDF upload feature is disabled for this bot.",
+      "updateSettings": "Failed to update settings",
+      "uploadFailed": "Failed to upload documents"
+    },
+    "estimate": {
+      "crawlCostLabel": "Estimated crawl cost:",
+      "backgroundNote": "Estimate in progress. We'll notify you when it's ready.",
+      "sampledPages": "(based on {{count}} sampled page(s))",
+      "tokensUnit": "Energy"
+    },
+    "modal": {
+      "cancel": "Cancel",
+      "confirm": "Confirm",
+      "crawlBody": "This crawl will index your website and consume energy based on the estimated total.",
+      "crawlTitle": "Confirm crawl",
+      "docsBody": "These documents will be ingested into your knowledge base using the estimated energy below.",
+      "docsTitle": "Confirm document upload",
+      "estimatedTokens": "Estimated energy",
+      "remainingTokens": "Remaining this month",
+      "estimateTitle": "Estimating crawl cost...",
+      "estimateBody": "We're calculating the estimated Energy cost for this crawl. This can take a few minutes for larger sites.",
+      "estimateKeepWaiting": "Keep waiting",
+      "estimateContinueBackground": "Continue in background"
+    },
+    "feature": {
+      "disabled": "Feature disabled",
+      "enabled": "Feature enabled"
+    },
+    "featuresAndPlan": "Features & Plan",
+    "fields": {
+      "domain": "Domain",
+      "systemPrompt": "System prompt (for knowledge usage)",
+      "retrievalProfile": "Knowledge retrieval profile",
+      "retrievalProfileHelp": "This changes how your bot searches knowledge sources. It does not change the model.",
+      "retrievalProfileOptionBalanced": "Balanced (recommended)",
+      "retrievalProfileOptionPrecise": "Precise",
+      "retrievalProfileOptionBroad": "Broad"
+    },
+    "history": {
+      "autoRefreshNote": "Auto-refresh updates only running rows on this page (every {{seconds}}s).",
+      "confirmEstimate": "Confirm",
+      "deactivate": "Deactivate",
+      "deactivating": "Deactivating...",
+      "discardEstimate": "Discard",
+      "estimateInProgress": "Estimate in progress",
+      "empty": {
+        "noClient": "No knowledge client yet. Start a crawl or upload a document to initialize.",
+        "noRuns": "No crawl runs yet."
+      },
+      "footer": "Showing {{shown}} of {{total}} — page {{page}} / {{totalPages}} ({{pageSize}} per page)",
+      "jobType": {
+        "docs": "DOCUMENT",
+        "domain": "DOMAIN"
+      },
+      "loadingRows": "Loading...",
+      "next": "Next",
+      "pagesStored": "{{count}} pages",
+      "prev": "Prev",
+      "refreshPage": "Refresh page",
+      "refreshRow": "Refresh",
+      "refreshingPage": "Refreshing...",
+      "refreshingRow": "Refreshing…",
+      "status": {
+        "completed": "completed",
+        "deactivated": "deactivated",
+        "failed": "failed",
+        "pending": "pending",
+        "ready": "ready",
+        "queued": "queued",
+        "running": "running"
+      },
+      "storedUnder": "Stored under: {{namespace}}",
+      "table": {
+        "actions": "Actions",
+        "chunks": "Chunks",
+        "finished": "Finished",
+        "origin": "Origin",
+        "pages": "Pages",
+        "started": "Started",
+        "status": "Status",
+        "tokens": "Energy",
+        "type": "Type"
+      },
+      "title": "Crawl history",
+      "tokenUsageNote": "Note: energy usage is best-effort, computed from usage events within the crawl’s time window.",
+      "uploadInProgress": "Upload in progress…",
+      "uploadedDocument": "Uploaded document"
+    },
+    "loadingBot": "Loading bot...",
+    "lockedBody": "This bot is currently {{status}}. Activate it in",
+    "missingBody": "No knowledge base has been built yet. Crawl your domain or upload PDFs to give this bot real context.",
+    "missingId": "Missing bot ID.",
+    "notFound": "Bot not found",
+    "onboarding": {
+      "btnIndexing": "Indexing website…",
+      "btnReindex": "Re-index website",
+      "btnStartIndexing": "Start indexing",
+      "continueToChannels": "Continue to channels",
+      "dashboardHint": "We’ll unlock the dashboard button right after the first index is completed.",
+      "dashboardHintShopify": "Connect your Shopify store to unlock the dashboard button.",
+      "domainHint": "We only use publicly available pages and always respect your robots.txt.",
+      "domainWhyTitle": "Why we need your domain",
+      "domainWhyBody": "Coslo uses your website to build a knowledge base for accurate answers. We only crawl public pages and respect robots.txt.",
+      "domainLabel": "Website domain",
+      "domainPlaceholder": "https://your-website.com",
+      "errors": {
+        "crawlFailed": "We couldn’t start the crawl. Please check your domain and try again.",
+        "loadBot": "Unable to load this bot right now.",
+        "saveDomain": "Unable to save this domain.",
+        "saveSource": "Unable to save knowledge source.",
+        "shopifySelected": "Shopify knowledge is selected. Switch to website knowledge to crawl a domain."
+      },
+      "finish": "Finish onboarding",
+      "docsReadyTitle": "Documents uploaded successfully",
+      "docsReadyBody": "Your files are now part of the knowledge base. You can continue to channels.",
+      "goToDashboard": "Go to dashboard",
+      "heroBody": "We’ll crawl your main domain to extract FAQs, help articles and key pages so your assistant feels like a real member of your team.",
+      "heroBodyShopify": "Connect your Shopify store so Coslo can answer questions from your live catalog.",
+      "heroTitle": "Teach Coslo about your website in one click",
+      "shopifyWhyTitle": "Why we need your store URL",
+      "shopifyWhyBody": "We connect to your store to sync products and keep your catalog answers accurate and up to date.",
+      "openShopify": "Open Shopify settings",
+      "saveDomain": "Save domain",
+      "savingDomain": "Saving…",
+      "shopifyHint": "Shopify knowledge is selected. Connect your store in the Shopify tab instead.",
+      "shopifySteps": {
+        "install": "Authorize Coslo to read your catalog and orders.",
+        "sync": "Pull the latest products so your assistant can answer live catalog questions."
+      },
+      "source": {
+        "label": "Knowledge source",
+        "rag": "Website / docs (RAG)",
+        "saving": "Saving...",
+        "selected": "Selected",
+        "shopify": "Shopify catalog"
+      },
+      "status": {
+        "completed": "Knowledge ready. Coslo now understands your website.",
+        "deactivated": "deactivated",
+        "failed": "The crawl failed. Check your domain and try again.",
+        "pollError": "We’re having trouble refreshing the status, but the crawl is still running.",
+        "readyExisting": "Your content is already indexed. You can re-index anytime to keep Coslo up to date.",
+        "running": "Indexing in progress. You can already use your bot while we finish crawling."
+      },
+      "statusPill": {
+        "completed": "Knowledge ready",
+        "deactivated": "deactivated",
+        "failed": "Crawl failed",
+        "idle": "Not started yet",
+        "running": "Indexing in progress",
+        "shopifyChecking": "Checking Shopify connection",
+        "shopifyConnected": "Shopify connected",
+        "shopifyNotConnected": "Shopify not connected"
+      },
+      "step1": {
+        "text": "Add the main website your customers use.",
+        "title": "Connect your domain"
+      },
+      "step2": {
+        "text": "We follow links, extract content and clean it up.",
+        "title": "Coslo crawls your pages"
+      },
+      "step3": {
+        "text": "Use Coslo in any channel, backed by your site’s content.",
+        "title": "Your bot answers like a pro"
+      },
+      "subtitle": "Connect your website so Coslo can crawl it and answer detailed, up-to-date questions.",
+      "subtitleShopify": "Connect your Shopify store so Coslo can use your live catalog.",
+      "title": "We’re preparing your bot’s knowledge"
+    },
+    "placeholders": {
+      "domain": "https://example.com",
+      "systemPrompt": "Explain how the bot should use website / document knowledge in its answers..."
+    },
+    "shopifyOnly": {
+      "body": "This bot uses Shopify as its knowledge source. Manage catalog sync and connection in",
+      "featuresLink": "Features",
+      "shopifyLink": "Shopify settings",
+      "title": "Shopify knowledge active"
+    },
+    "status": {
+      "knowledgeStatus": "Knowledge status",
+      "locked": "Locked",
+      "missing": "Missing"
+    },
+    "subtitle": "Configure domain, prompt and trigger crawls or document ingestion for {{botName}}.",
+    "success": {
+      "deactivateJob": "Deactivated {{count}} chunks for job {{jobId}}.",
+      "domainCrawlStarted": "Domain crawl started/completed for {{domain}}. The knowledge base will be refreshed shortly.",
+      "domainCrawlStartedJob": "Domain crawl started for {{domain}} (job {{jobId}}).",
+      "estimateDiscarded": "Estimate discarded.",
+      "estimateQueued": "Estimate started. It will appear in the table once ready.",
+      "settingsUpdated": "Knowledge settings updated.",
+      "uploadedDocs": "Uploaded and ingested {{count}} document(s): {{files}}"
+    },
+    "title": "Content & Knowledge"
+  },
+  "botPlan": {
+    "actions": {
+      "activatePay": "Activate & Pay",
+      "changePlan": "Change plan",
+      "redirecting": "Redirecting...",
+      "updating": "Updating..."
+    },
+    "backToOverview": "← Back to overview",
+    "backToFeatures": "← Back to features",
+    "energyInfo": {
+      "estimates": "The \"Up to\" values shown in each plan are maximum estimates if you spent all your Energy on a single type of task. Actual usage varies based on message length, document size and context.",
+      "main": "Almost every action on the platform consumes Energy (assistant messages, document retrieval, tools, ingestion). WhatsApp template messages (outbound) have their own limit and do not consume Energy.",
+      "title": "How Energy and limits work",
+      "tooltip": "Energy is a unified credit that covers assistant messages, retrieval and ingestion. WhatsApp template messages have a separate limit."
+    },
+    "errorTitle": "Error",
+    "errors": {
+      "loadFailed": "Failed to load plan data",
+      "selectPlan": "Please select a plan.",
+      "updateFailed": "Failed to update plan"
+    },
+    "features": {
+      "default": {
+        "energy": "{{amount}} Energy per month"
+      },
+      "free": {
+        "emails": "Up to 20 emails",
+        "energy": "{{amount}} Energy per month",
+        "messages": "Up to 150 AI Assistant messages (estimate)",
+        "pages": "Up to 100 ingested pages (estimate)",
+        "whatsappTemplates": "Up to 0 WhatsApp template messages (outbound)"
+      },
+      "growth": {
+        "emails": "Up to 5,000 emails",
+        "energy": "{{amount}} Energy per month",
+        "messages": "Up to 20,000 AI Assistant messages (estimate)",
+        "pages": "Up to 10,000 ingested pages (estimate)",
+        "whatsappTemplates": "Up to 1,000 WhatsApp template messages (outbound)"
+      },
+      "scale": {
+        "emails": "Up to 20,000 emails",
+        "energy": "{{amount}} Energy per month",
+        "messages": "Up to 85,000 AI Assistant messages (estimate)",
+        "pages": "Up to 50,000 ingested pages (estimate)",
+        "whatsappTemplates": "Up to 5,000 WhatsApp template messages (outbound)"
+      },
+      "starter": {
+        "emails": "Up to 1,000 emails",
+        "energy": "{{amount}} Energy per month",
+        "messages": "Up to 3,500 AI Assistant messages (estimate)",
+        "pages": "Up to 2,000 ingested pages (estimate)",
+        "whatsappTemplates": "Up to 200 WhatsApp template messages (outbound)"
+      }
+    },
+    "loading": "Loading plan options...",
+    "missingId": "Missing bot ID.",
+    "notFoundTitle": "Bot not found",
+    "notes": {
+      "proration": "Your subscription will be updated immediately. Stripe will apply prorated charges/credits.",
+      "redirectToStripe": "You'll be redirected to Stripe to confirm and pay for this bot."
+    },
+    "onboarding": {
+      "edit": "Edit",
+      "subtitle": "Review your selection and pick the plan that matches your volume.",
+      "summary": {
+        "booking": "Bookings",
+        "channels": "Channels",
+        "disabled": "Disabled",
+        "enabled": "Enabled",
+        "leadAds": "Lead Ads → WhatsApp",
+        "none": "None configured"
+      },
+      "summarySubtitle": "Here’s what you’ve configured for this bot so far.",
+      "summaryTitle": "Configuration summary",
+      "title": "Choose your plan and start using Coslo"
+    },
+    "perMonth": "month",
+    "plans": {
+      "empty": "No usage plans are configured yet. Please contact support.",
+      "loading": "Loading plans…",
+      "mostPopular": "Most popular",
+      "planImageAlt": "{{planName}} plan",
+      "select": "Select this plan",
+      "selected": "Selected",
+      "subtitle": "Pick how much usage you expect. You can change your plan later.",
+      "title": "Usage plans",
+      "tokensPerMonth": "Energy per month:",
+      "tokensPerMonthLabel": "Energy per month",
+      "unlimited": "Unlimited"
+    },
+    "subtitle": "Step 2 – choose a usage plan for {{botName}}. Final price = features subtotal + plan.",
+    "success": {
+      "planActivated": "Plan activated.",
+      "planUpdatedProration": "Plan updated. Stripe has applied proration to your subscription.",
+      "title": "Plan updated"
+    },
+    "summary": {
+      "featuresSubtotal": "Features subtotal",
+      "featuresTotalPerMonth": "Features total (per month)",
+      "loadingPricing": "Loading pricing…",
+      "noPlanSelected": "No plan selected.",
+      "selectPlanToSeeTotal": "Select a plan to see total",
+      "selectedPlan": "Selected plan",
+      "statusLabel": "Status:",
+      "subtitle": "Final price = features subtotal + selected usage plan.",
+      "title": "Summary",
+      "totalPerMonth": "Total per month"
+    },
+    "title": "Plan & billing"
+  },
+  "botSettings": {
+    "actions": {
+      "note": "Changes apply to new conversations and bookings.",
+      "save": "Save settings",
+      "saving": "Saving…"
+    },
+    "advanced": {
+      "hide": "Hide advanced settings",
+      "prompt": "Need more control over booking rules, reminders and emails?",
+      "show": "Advanced settings"
+    },
+    "backToOverview": "← Back to overview",
+    "bookingFields": {
+      "addButton": "Add",
+      "addPlaceholder": "Add a field key, e.g. notes",
+      "additionalEmpty": "No extra fields configured yet. Add any extra pieces of information you want the bot to ask for (e.g.",
+      "additionalTitle": "Additional fields",
+      "alwaysRequiredHelp": "These core fields are always required for bookings and cannot be removed.",
+      "alwaysRequiredTitle": "Always required",
+      "keysHelp": "Use short, machine-friendly keys (no spaces). The assistant will still talk to users in natural language.",
+      "removeFieldAria": "Remove field {{field}}"
+    },
+    "calendarDisabled": {
+      "body": "Booking features will only be active once you enable the calendar add-on in",
+      "title": "Calendar is disabled for this bot."
+    },
+    "emailFields": {
+      "bodyHtmlOptional": "Body (HTML, optional)",
+      "bodyText": "Body (text)",
+      "subject": "Subject"
+    },
+    "emailGroups": {
+      "cancellation": {
+        "htmlHelp": "Leave empty to use the text-only version.",
+        "htmlPlaceholder": "<p>Hi {{client.name}},</p><p>Your booking for {{booking.service}} on {{booking.start}} has been cancelled.</p>",
+        "subjectPlaceholder": "Your booking with {{bot.name}} has been cancelled",
+        "textPlaceholder": "Hi {{client.name}},\n\nyour booking for {{booking.service}} on {{booking.start}} has been cancelled.\nIf this is a mistake, please contact us.\n\n— {{bot.name}}",
+        "title": "Cancellation email"
+      },
+      "confirmation": {
+        "htmlHelp": "If provided, HTML will be used as the main email body. Keep it simple and mobile-friendly.",
+        "htmlPlaceholder": "<p>Hi {{client.name}},</p><p>Your booking for {{booking.service}} on {{booking.start}} is confirmed.</p>",
+        "subjectPlaceholder": "Your booking with {{bot.name}} is confirmed",
+        "textPlaceholder": "Hi {{client.name}},\n\nyour booking for {{booking.service}} on {{booking.start}} is confirmed.\nIf you need to reschedule, please contact us.\n\n— {{bot.name}}",
+        "title": "Confirmation email"
+      },
+      "reminder": {
+        "htmlHelp": "Leave empty to use the text-only version.",
+        "htmlPlaceholder": "<p>Hi {{client.name}},</p><p>This is a reminder for your booking {{booking.service}} on {{booking.start}}.</p>",
+        "subjectPlaceholder": "Reminder: your booking with {{bot.name}}",
+        "textPlaceholder": "Hi {{client.name}},\n\nthis is a reminder for your booking {{booking.service}} on {{booking.start}}.\n\n— {{bot.name}}",
+        "title": "Reminder email"
+      }
+    },
+    "errors": {
+      "loadFailed": "Could not load bot settings. Please refresh and try again.",
+      "saveFailed": "Could not save settings. Please check the values and try again."
+    },
+    "featuresAndPlan": "Features & plan",
+    "fields": {
+      "bookingMaxAdvanceDays": {
+        "help": "Do not accept bookings further than this many days from now. Leave empty for no limit.",
+        "label": "Maximum days in advance",
+        "placeholder": "e.g. 30"
+      },
+      "bookingMaxSimultaneousBookings": {
+        "help": "Limit how many bookings can be accepted for the same time slot. Leave empty for no limit.",
+        "label": "Maximum bookings per time slot",
+        "placeholder": "e.g. 1"
+      },
+      "bookingMinLeadHours": {
+        "help": "The appointment must start at least this many hours after it is created.",
+        "label": "Minimum lead time (hours)",
+        "placeholder": "e.g. 2"
+      },
+      "bookingReminderMinLeadHours": {
+        "help": "Avoid sending reminders for last-minute bookings. Leave empty to disable this extra constraint.",
+        "label": "Min hours between creation and start",
+        "placeholder": "e.g. 3"
+      },
+      "bookingReminderWindowHours": {
+        "help": "Appointments starting within this many hours will be eligible for reminders.",
+        "label": "Reminder window (hours before start)",
+        "placeholder": "e.g. 24"
+      },
+      "calendarId": {
+        "help": "Use",
+        "label": "Calendar ID",
+        "placeholder": "primary or your-calendar-id@group.calendar.google.com"
+      },
+      "defaultDurationMinutes": {
+        "help": "Used when the user doesn’t specify a duration explicitly.",
+        "label": "Default booking duration (minutes)",
+        "placeholder": "30"
+      },
+      "timeZone": {
+        "help": "IANA timezone name. The assistant uses it to compute available slots and email times.",
+        "label": "Time zone",
+        "placeholder": "e.g. Europe/Rome"
+      }
+    },
+    "intro": "Connect this bot to your Google Calendar and fine-tune how bookings, reminders, and emails behave.",
+    "loading": "Loading bot settings…",
+    "missingId": "Missing bot id.",
+    "notFound": "Bot not found.",
+    "onboarding": {
+      "booking": {
+        "enableToContinue": "Turn on bookings above or skip this step to continue.",
+        "next": "Save & continue to Lead Ads",
+        "finish": "Save and finish onboarding",
+        "nextWhenDisabled": "Continue to Lead Ads",
+        "serviceNameRequired": "Service name is required when you add multiple services.",
+        "servicesRequired": "Add at least one service with a calendar before continuing.",
+        "subtitle": "Connect your calendar, define your available slots and booking rules.",
+        "tablesRequired": "Add at least one table before continuing.",
+        "title": "Enable bookings from chat",
+        "toggleOff": "Bookings are OFF",
+        "toggleOffHint": "You can keep bookings disabled for now and still complete onboarding. You’ll be able to turn them on later from the app.",
+        "toggleOn": "Bookings are ON",
+        "toggleSubtitle": "When enabled, Coslo will check your calendar and offer time slots directly in chat.",
+        "toggleTitle": "Let Coslo propose and book meetings"
+      },
+      "common": {
+        "skip": "Skip for now"
+      }
+    },
+    "sections": {
+      "availability": {
+        "acceptBookings": "Accept bookings this day",
+        "addRange": "Add time range",
+        "disabledHint": "Bookings are not allowed on this day until you enable it.",
+        "enabledHint": "Bookings are allowed on this day within the time ranges below.",
+        "from": "From",
+        "hint": "Choose which days you take bookings and the time ranges for each day.",
+        "note": "Bookings will only be accepted inside these ranges (in your bot's time zone).",
+        "removeRange": "Remove",
+        "slots": "Slots",
+        "slotsPlaceholder": "e.g. 1",
+        "slotsRequired": "Slots indicate how many bookings you can handle at the same time.",
+        "title": "Available days & hours",
+        "to": "To"
+      },
+      "bookingFields": {
+        "hint": "These are the fields the assistant will try to collect when booking an appointment.",
+        "title": "Booking fields"
+      },
+      "bookingRules": {
+        "hint": "Define how far in advance customers can book.",
+        "title": "Booking rules"
+      },
+      "calendarConnection": {
+        "hint": "Configure which Google Calendar the assistant should use and the default duration for new bookings.",
+        "title": "Calendar connection"
+      },
+      "emails": {
+        "hint": "Customize booking confirmation and reminder emails. You can use placeholders like",
+        "title": "Emails"
+      },
+      "reminderWindow": {
+        "hint": "Control when reminder emails are sent relative to the appointment start time.",
+        "title": "Reminder window"
+      },
+      "services": {
+        "add": "Add service",
+        "cardHint": "Configure the calendar and availability for this service.",
+        "hint": "Create one service per calendar and set its duration, capacity, and opening hours.",
+        "remove": "Remove service",
+        "title": "Services & calendars",
+        "unnamed": "Service"
+      },
+      "timezone": {
+        "hint": "Used to validate booking times across all services.",
+        "title": "Business time zone"
+      }
+    },
+    "services": {
+      "fields": {
+        "aliases": "Aliases (optional)",
+        "aliasesPlaceholder": "e.g. womens haircut, haircut for women",
+        "duration": "Duration (minutes)",
+        "labelOptional": "Label (optional)",
+        "labelPlaceholder": "e.g. General",
+        "name": "Service name",
+        "namePlaceholder": "e.g. Haircut"
+      }
+    },
+    "side": {
+      "cards": {
+        "bookingFields": {
+          "text": "Extra fields you configure are stored with each appointment and can be used in your own workflows or CRM.",
+          "title": "Booking fields"
+        },
+        "calendar": {
+          "text": "The assistant creates events on the service calendars you configure here.",
+          "title": "Calendar connection"
+        },
+        "emailTemplates": {
+          "and": "and",
+          "replaced": "are replaced with real data",
+          "text": "If SMTP is misconfigured, the backend falls back to sending confirmations only in chat. When emails are sent, placeholders like",
+          "title": "Email templates"
+        },
+        "timeRules": {
+          "text": "Booking rules prevent last-minute or too-far-in-the-future appointments, so your schedule stays under control.",
+          "title": "Time rules"
+        }
+      },
+      "subtitle": "Calendar configuration controls where events are created. Advanced settings fine-tune how your assistant offers time slots and sends notifications.",
+      "title": "How calendar & bookings are used"
+    },
+    "success": {
+      "saved": "Settings updated successfully."
+    },
+    "title": "Calendar & bookings",
+    "toggles": {
+      "confirmationEmail": "Send confirmation email after a new booking",
+      "reminderEmail": "Send reminder email before the appointment"
+    },
+    "weekdays": {
+      "friday": "Friday",
+      "monday": "Monday",
+      "saturday": "Saturday",
+      "sunday": "Sunday",
+      "thursday": "Thursday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday"
+    }
+  },
+  "bots": {
+    "actions": "Actions",
+    "active": "Active",
+    "channels": "Channels",
+    "conversations": "Conversations",
+    "draft": "Draft",
+    "inactive": "Inactive",
+    "manage": "Manage",
+    "name": "Name",
+    "newBot": "New Bot",
+    "noBots": "No bots yet. Create your first one!",
+    "status": "Status",
+    "statusActive": "Active",
+    "statusCanceled": "Canceled",
+    "statusDraft": "Draft",
+    "statusPendingPayment": "Pending payment",
+    "statusSuspended": "Suspended",
+    "title": "Your Bots"
+  },
+  "botsList": {
+    "actions": {
+      "create": "Create new bot",
+      "deleteBot": "Delete bot",
+      "openBot": "Open bot"
+    },
+    "channels": {
+      "instagram": "Instagram",
+      "messenger": "Messenger",
+      "web": "Web",
+      "whatsapp": "WhatsApp"
+    },
+    "confirm": {
+      "deleteBot": "This will permanently delete bot \"{{name}}\" and all its conversations and data. Continue?",
+      "slugMismatch": "Slug does not match. Bot was not deleted.",
+      "typeSlug": "Type the slug of this bot (\"{{slug}}\") to confirm deletion:"
+    },
+    "empty": "No bots yet.",
+    "errors": {
+      "deleteFailed": "Failed to delete bot",
+      "loadFailed": "Failed to load bots"
+    },
+    "loading": "Loading bots...",
+    "table": {
+      "actions": "Actions",
+      "channels": "Channels",
+      "domain": "Domain",
+      "name": "Name",
+      "slug": "Slug",
+      "status": "Status"
+    },
+    "title": "Your bots"
+  },
+  "brand": "Coslo AI",
+  "common": {
+    "amount": "Amount",
+    "back": "Back",
+    "cancel": "Cancel",
+    "comingSoon": "This page is under construction. Check back soon!",
+    "connected": "connected",
+    "copy": "Copy",
+    "currency": "Currency",
+    "delete": "Delete",
+    "edit": "Edit",
+    "email": "Email",
+    "error": "Error",
+    "language": {
+      "en": "English",
+      "it": "Italian",
+      "es": "Spanish",
+      "de": "German",
+      "fr": "French"
+    },
+    "loading": "Loading...",
+    "next": "Next",
+    "notConnected": "not connected",
+    "paidAt": "Paid at",
+    "prev": "Prev",
+    "save": "Save",
+    "saving": "Saving...",
+    "status": "Status",
+    "close": "Close",
+    "toggleTheme": "Toggle theme",
+    "breadcrumb": "Breadcrumb",
+    "more": "More",
+    "notAvailable": "N/A",
+    "booleanTrue": "Yes",
+    "booleanFalse": "No",
+    "info": "Info",
+    "channels": {
+      "facebook": "Facebook",
+      "whatsapp": "WhatsApp"
+    },
+    "confirm": "Confirm"
+  },
+  "conversationDetail": {
+    "aiModeNotice": "Switch to human mode to chat with this contact.",
+    "backToBots": "← Back to overview",
+    "backToConversations": "← Back to conversations",
+    "empty": "No messages.",
+    "errors": {
+      "loadFailed": "Failed to load messages"
+    },
+    "loading": "Loading messages...",
+    "manualSend": {
+      "button": "Send",
+      "description": "Send a manual reply as a human agent over this channel.",
+      "empty": "Please enter a message before sending.",
+      "failed": "Failed to send the message.",
+      "placeholder": "Type a manual reply...",
+      "sending": "Sending...",
+      "success": "Message sent as HUMAN.",
+      "title": "Manual reply (HUMAN)",
+      "windowExpired": "You can no longer send manual messages: the last user message is more than 24 hours old on this channel. Meta requires templates beyond the 24h window."
+    },
+    "missingId": "Missing conversation ID.",
+    "mode": {
+      "aiLabel": "AI",
+      "error": "Failed to update conversation mode.",
+      "humanLabel": "HUMAN",
+      "switchingToAi": "Switching…",
+      "switchingToHuman": "Switching…"
+    },
+    "parties": {
+      "business": "Your channel",
+      "title": "Conversation parties",
+      "user": "Contact"
+    },
+    "roles": {
+      "assistant": "Assistant",
+      "human": "Human",
+      "system": "System",
+      "user": "User"
+    },
+    "switchToAi": "Switch to AI",
+    "switchToHuman": "Switch to human mode",
+    "title": "Conversation",
+    "windowExpiredPill": "24h window expired",
+    "revenueAI": {
+      "title": "Revenue AI style",
+      "autoAssigns": "Auto assigns SOFT/CLOSER per session.",
+      "options": {
+        "auto": "Auto",
+        "soft": "Soft Sell",
+        "closer": "Closer"
+      },
+      "expiry": {
+        "untilEnd": "Until conversation ends",
+        "for24h": "For 24h"
+      },
+      "overrideExpires": "Override expires",
+      "updateFailed": "Failed to update style override."
+    }
+  },
+  "cookie": {
+    "accept": "Accept",
+    "message": "This site uses cookies to improve your experience. By continuing to browse, you accept our use of cookies.",
+    "reject": "Reject"
+  },
+  "dashboard": {
+    "actions": {
+      "createNewBot": "+ Create new bot"
+    },
+    "activeBots": "Active Bots",
+    "activity": {
+      "convAbbrev": "conv.",
+      "empty": "No active bots in the last 30 days.",
+      "lastConversation": "Last conversation",
+      "subtitle": "Quick view of your most active bots.",
+      "title": "Activity details",
+      "view": "View"
+    },
+    "charts": {
+      "conversationsLast10Days": {
+        "empty": "No conversations yet in the last 10 days.",
+        "subtitle": "Each line represents a bot. Hover or tap to see daily volumes.",
+        "title": "Conversations (last {{days}} days)"
+      },
+      "tokensLast10Days": {
+        "empty": "No Energy usage recorded yet in the last 10 days.",
+        "subtitle": "Total Energy per day for each bot.",
+        "title": "Energy usage (last {{days}} days)"
+      },
+      "tokensSplitByBotLast10Days": {
+        "empty": "Not enough data yet to show per-bot split.",
+        "subtitle": "How each bot consumes tokens via OpenAI + knowledge, emails, and WhatsApp templates",
+        "title": "Tokens by bot & channel (last {{days}} days)"
+      },
+      "tokensSplitLast10Days": {
+        "empty": "Not enough data yet to show the split.",
+        "subtitle": "OpenAI + knowledge vs emails vs WhatsApp templates",
+        "title": "Tokens by channel (last {{days}} days)"
+      },
+      "topBots": {
+        "empty": "No conversations yet in the last 30 days.",
+        "subtitle": "Ranked by conversation volume in the selected period.",
+        "title": "Top bots by conversations"
+      }
+    },
+    "coaching": {
+      "addKnowledge": "Add knowledge",
+      "connectChannels": "Connect channels",
+      "createBot": "Create a bot",
+      "subtitle": "No conversations yet in this range. Here are quick ways to get activity.",
+      "title": "Get your dashboard moving"
+    },
+    "conversations": "Conversations",
+    "conversationsOverTime": "Conversations Over Time",
+    "conversion": {
+      "back": "Back to dashboard",
+      "bookingRate": "Booking rate",
+      "bookings": "Bookings",
+      "bot": "Bot",
+      "conversations": "Conversations",
+      "empty": "No conversion data yet.",
+      "leadRate": "Lead rate",
+      "leads": "Leads",
+      "perBot": "Per-bot breakdown",
+      "perBotSubtitle": "Track which bots convert best.",
+      "subtitle": "Conversations → leads → bookings",
+      "title": "User journey",
+      "viewDetails": "View per-bot breakdown"
+    },
+    "days10": "Last 10 days",
+    "days30": "Last 30 days",
+    "days90": "Last 90 days",
+    "emails": "Emails Sent",
+    "empty": {
+      "cta": "Create your first bot",
+      "subtitle": "Start by creating your first bot. Once traffic arrives, you’ll see conversations, energy usage and top performers here.",
+      "title": "No bots yet"
+    },
+    "errors": {
+      "loadFailed": "Failed to load dashboard"
+    },
+    "health": {
+      "back": "Back to dashboard",
+      "bookings": "Bookings",
+      "conversationsLast30": "Conversations (30d)",
+      "empty": "No bots found yet.",
+      "knowledge": "Knowledge",
+      "lastConversation": "Last conversation",
+      "settings": "Settings",
+      "status": "Status",
+      "subtitle": "Quick overview of bot readiness, channels, and recent activity.",
+      "title": "Bot health",
+      "viewBot": "View bot",
+      "errors": {
+        "loadFailed": "Failed to load bot health."
+      },
+      "channels": {
+        "web": "Web",
+        "whatsapp": "WhatsApp",
+        "facebook": "Facebook",
+        "instagram": "Instagram"
+      },
+      "statusOn": "On",
+      "statusOff": "Off"
+    },
+    "insights": {
+      "alertsSubtitle": "Early signals from recent activity",
+      "alertsTitle": "Alerts & anomalies",
+      "bookings": "Bookings",
+      "compareEmpty": "Comparison unavailable.",
+      "compareSubtitle": "Current vs previous period",
+      "compareTitle": "Period comparison",
+      "noAlerts": "No unusual activity detected.",
+      "now": "Now",
+      "prev": "Prev"
+    },
+    "kpis": {
+      "activeBots": "Active bots",
+      "conversationsLast30Days": "Conversations (last {{days}} days)",
+      "emailsThisMonth": "Emails sent (last {{days}} days)",
+      "tokensThisMonth": "Energy used (last {{days}} days)",
+      "totalBots": "Total bots",
+      "whatsappLeadsThisMonth": "WhatsApp leads (last {{days}} days)"
+    },
+    "kpisHints": {
+      "activeBots": "Bots currently live and serving traffic.",
+      "conversationsLast30Days": "Across all channels & bots.",
+      "of": "of",
+      "tokensThisMonth": "Useful to keep an eye on costs.",
+      "totalBots": "All bots created under this account.",
+      "unlimitedPlan": "Unlimited plan",
+      "whatsappLeadsThisMonth": "Number of WhatsApp lead templates sent in the last {{days}} days"
+    },
+    "loading": "Loading dashboard data...",
+    "range": {
+      "days": "days",
+      "hint": "Charts update based on this range.",
+      "label": "Time range",
+      "last": "Last",
+      "loading": "Updating charts…"
+    },
+    "sections": {
+      "overview": "At a glance",
+      "overviewSubtitle": "Core health signals across your bots.",
+      "trends": "Trends",
+      "trendsSubtitle": "Conversations, usage, and performance over time."
+    },
+    "subtitle": "Overview of your bots, conversations and energy usage.",
+    "title": "Dashboard",
+    "tokenUsage": "Token Usage",
+    "tokens": "Tokens Used",
+    "tokensSplit": {
+      "legend": {
+        "emails": "Emails",
+        "openAi": "OpenAI + knowledge",
+        "whatsapp": "WhatsApp templates"
+      }
+    },
+    "shopify": {
+      "title": "Shopify assistant commerce",
+      "subtitle": "Track product views, add-to-cart clicks, and purchases driven by the assistant.",
+      "viewProduct": "View product clicks",
+      "addToCart": "Add to cart clicks",
+      "purchases": "Purchases",
+      "revenue": "Revenue attributed",
+      "byBot": "Shopify activity by bot",
+      "empty": "No Shopify analytics yet."
+    },
+    "revenueAI": {
+      "title": "Revenue AI",
+      "subtitle": "Safe Shopify Revenue Optimizer performance.",
+      "metrics": {
+        "impressions": "Impressions",
+        "viewProduct": "View Product",
+        "addToCart": "Add to cart",
+        "checkout": "Checkout",
+        "purchases": "Purchases",
+        "influencedRevenue": "Influenced revenue"
+      },
+      "impact": {
+        "title": "Revenue Impact",
+        "atcRateUplift": "ATC rate uplift (sessions)",
+        "checkoutRateUplift": "Checkout rate uplift (sessions)",
+        "aovUplift": "AOV uplift",
+        "offerSessions": "Offer sessions",
+        "without": " ? Without ",
+        "withOffers": "With offers"
+      },
+      "style": {
+        "title": "Style performance",
+        "empty": "No style data yet.",
+        "ctr": "CTR",
+        "atc": " ? ATC",
+        "checkout": "Checkout",
+        "revenue": " ? Revenue"
+      },
+      "topProducts": {
+        "title": "Top recommended products (impact)",
+        "empty": "No suggestions yet.",
+        "columns": {
+          "product": "Product",
+          "impressions": "Impr.",
+          "ctr": "CTR",
+          "atc": "ATC",
+          "checkout": "Checkout",
+          "purchases": "Purch.",
+          "revenue": "Revenue"
+        }
+      },
+      "sessions": {
+        "withSuggestion": "Sessions with suggestion",
+        "withoutSuggestion": "Sessions without suggestion",
+        "total": "Total sessions"
+      }
+    }
+  },
+  "demoBot": {
+    "defaultError": "Failed to load bot",
+    "errorTitle": "Error",
+    "loading": "Loading bot...",
+    "noSlug": "No bot slug provided.",
+    "notFoundBody": "Please check the link you were given.",
+    "notFoundTitle": "Bot not found"
+  },
+  "forgotPassword": {
+    "actions": {
+      "resetPassword": "Reset password",
+      "sendCode": "Send reset code",
+      "sending": "Sending...",
+      "updating": "Updating..."
+    },
+    "backToLogin": "Back to",
+    "bullets": {
+      "b1": "Use the same email you registered with.",
+      "b2": "Codes expire in 10 minutes.",
+      "b3": "You'll choose a new password after verifying the code."
+    },
+    "cancel": {
+      "confirm": "Cancel this subscription at the end of the current billing period?",
+      "cta": "Cancel subscription",
+      "error": "Failed to cancel subscription.",
+      "processing": "Canceling?",
+      "scheduled": "Cancellation scheduled",
+      "success": "Cancellation scheduled. Your plan stays active until the end of the current billing period.",
+      "successWithDate": "Cancellation scheduled. Your plan stays active until {{date}}.",
+      "until": "until"
+    },
+    "codeLabel": "Reset code",
+    "confirmPassword": "Confirm password",
+    "emailLabel": "Email",
+    "errors": {
+      "mismatch": "Passwords do not match.",
+      "requestFailed": "We couldn't send the reset code. Please try again.",
+      "requirements": "Password does not meet the requirements.",
+      "resetFailed": "Invalid or expired code. Please try again."
+    },
+    "kicker": "Password recovery",
+    "newPassword": "New password",
+    "subtitle": {
+      "request": "Enter the email you used to register. We'll send you a 6-digit code.",
+      "reset": "Enter the code we emailed you and choose a new password."
+    },
+    "success": {
+      "requested": "If an account exists, we sent a reset code to your email.",
+      "reset": "Password updated successfully. You can log in now."
+    },
+    "title": "Recover your password"
+  },
+  "landing": {
+    "hero": {
+      "eyebrow": "AI for conversations and conversions",
+      "title": "Turn every conversation into a result.",
+      "titleHighlight": "Bookings for services. Purchases for Shopify.",
+      "subtitle": "Coslo brings two specialized AI Assistants — Service & Booking and Shopify Commerce — into one omnichannel platform with human handoff and analytics.",
+      "ctaPrimary": "Start free",
+      "ctaSecondary": "Watch demo",
+      "demo": "View a live demo",
+      "note": "No card required · Setup in minutes",
+      "trust": {
+        "t1": "4 channels ready",
+        "t2": "AI plus human handoff",
+        "t3": "Built for services and commerce",
+        "t4": "Analytics included"
+      },
+      "visual": {
+        "title": "Live assistant",
+        "subtitle": "Answers, books, and sells",
+        "chatUser": "Hi, can I book a haircut for Friday?",
+        "chatBot": "Yes. I can reserve 10:30 or 15:00. Which works for you?",
+        "sideTitle": "Today",
+        "sideBookingLabel": "Bookings",
+        "sideBookingValue": "8 confirmed",
+        "sideSalesLabel": "Sales",
+        "sideSalesValue": "12 checkout assists",
+        "sideCta": "Handoff to team",
+        "sideCtaSub": "When a human touch is needed",
+        "imageAlt": "Coslo assistant preview",
+        "tabs": {
+          "services": "Services & Bookings",
+          "shopify": "Shopify & E-commerce"
+        },
+        "services": {
+          "label": "Service Assistant",
+          "user": "Can I book a haircut this Friday?",
+          "assistant": "Yes. I can reserve 10:30 or 15:00. Which works?",
+          "outcome": "Booking confirmed"
+        },
+        "shopify": {
+          "label": "Shopify Assistant",
+          "user": "I need a lightweight running shoe.",
+          "assistant": "Here are 3 options that match your size and style.",
+          "outcome": "Checkout assisted"
+        },
+        "platform": {
+          "title": "One platform",
+          "channels": {
+            "whatsapp": "WhatsApp",
+            "instagram": "Instagram",
+            "messenger": "Messenger",
+            "web": "Web Widget"
+          },
+          "handoff": "AI + human handoff",
+          "analytics": "Analytics"
+        }
+      },
+      "assistantChooser": {
+        "title": "Choose your assistant",
+        "services": "For services & bookings",
+        "shopify": "For Shopify & e-commerce"
+      },
+      "jump": {
+        "label": "Jump to:",
+        "assistants": "Assistants",
+        "pricing": "Pricing",
+        "faq": "FAQ"
+      }
+    },
+    "painPoints": {
+      "title": "The problems teams keep patching",
+      "subtitle": "Coslo replaces scattered chats and manual follow ups with one assistant that moves revenue.",
+      "items": {
+        "p1": "Messages arrive after hours and no one answers.",
+        "p2": "The same questions are repeated all day.",
+        "p3": "Leads drop off without follow up.",
+        "p4": "Channels feel disconnected and inconsistent.",
+        "p5": "Booking and rescheduling take manual time.",
+        "p6": "Support and sales never share context."
+      }
+    },
+    "howItWorks": {
+      "title": "How it works",
+      "subtitle": "Launch in a day, improve every week.",
+      "steps": {
+        "s1": {
+          "title": "Connect your channels",
+          "text": "Add Web Widget, WhatsApp, Instagram, or Messenger."
+        },
+        "s2": {
+          "title": "Choose your Assistant",
+          "text": "Services and Booking or Shopify Commerce, tailored to your business."
+        },
+        "s3": {
+          "title": "Go live with your team",
+          "text": "AI answers, books, sells, and hands off when needed."
+        }
+      }
+    },
+    "assistants": {
+      "title": "Two specialized AI Assistants",
+      "subtitle": "Same platform, two optimized experiences.",
+      "services": {
+        "tag": "Best for services",
+        "title": "Service and Booking Assistant",
+        "description": "For local services, studios, clinics, and any business that books time.",
+        "bullets": {
+          "b1": "Answers FAQs using your website and documents.",
+          "b2": "Qualifies requests and captures details.",
+          "b3": "Checks availability and books appointments.",
+          "b4": "Sends confirmations and reminders.",
+          "b5": "Escalates to your team when needed."
+        },
+        "cta": "For services"
+      },
+      "shopify": {
+        "tag": "Best for commerce",
+        "title": "Shopify Assistant",
+        "description": "For Shopify brands that want more conversations to end in checkout.",
+        "bullets": {
+          "b1": "Guides product discovery and recommendations.",
+          "b2": "Handles order and post purchase questions.",
+          "b3": "Supports cart and checkout decisions.",
+          "b4": "Encourages bundles and add ons naturally.",
+          "b5": "Keeps the experience consistent across channels."
+        },
+        "cta": "For Shopify"
+      }
+    },
+    "sharedPlatform": {
+      "title": "One platform behind both assistants",
+      "subtitle": "One foundation for channels, handoff, and analytics. Both assistants run here.",
+      "items": {
+        "i1": "Unified inbox for every channel.",
+        "i2": "AI and human handoff with context.",
+        "i3": "Lead follow up and reminders.",
+        "i4": "Performance analytics and funnels.",
+        "i5": "Shared knowledge foundation for both assistants."
+      },
+      "channels": {
+        "web": "Web Widget",
+        "whatsapp": "WhatsApp",
+        "instagram": "Instagram",
+        "messenger": "Messenger"
+      },
+      "imageAlt": "Coslo multichannel preview",
+      "visual": {
+        "title": "Shared foundation",
+        "badge": "One platform",
+        "layer1": {
+          "title": "Channels unified",
+          "text": "Web Widget, WhatsApp, Instagram, and Messenger in one inbox."
+        },
+        "layer2": {
+          "title": "AI + team handoff",
+          "text": "Let AI handle routine conversations and hand off with full context."
+        },
+        "layer3": {
+          "title": "Analytics and outcomes",
+          "text": "Track bookings, conversions, and channel performance."
+        }
+      }
+    },
+    "useCases": {
+      "title": "Where Coslo performs best",
+      "subtitle": "Real scenarios, real outcomes.",
+      "labels": {
+        "scenario": "Scenario",
+        "outcome": "Outcome"
+      },
+      "cards": {
+        "c1": {
+          "title": "Local services",
+          "scenario": "A customer asks about availability on WhatsApp at night.",
+          "outcome": "Coslo confirms details, books the appointment, and sends reminders."
+        },
+        "c2": {
+          "title": "Clinics and studios",
+          "scenario": "A new patient asks about pricing, insurance, and timing.",
+          "outcome": "Coslo answers, qualifies, and schedules the visit."
+        },
+        "c3": {
+          "title": "Shopify stores",
+          "scenario": "A shopper wants the right size and compares products.",
+          "outcome": "Coslo recommends, adds to cart, and supports checkout."
+        },
+        "c4": {
+          "title": "Lead follow up",
+          "scenario": "Leads come from ads and Instagram DMs.",
+          "outcome": "Coslo replies instantly and routes hot leads to your team."
+        }
+      }
+    },
+    "demoFlow": {
+      "title": "See the full flow, end to end",
+      "subtitle": "A single conversation can move from question to outcome without losing momentum.",
+      "steps": {
+        "s1": {
+          "step": "01",
+          "title": "Incoming message",
+          "text": "Customer asks about availability or a product."
+        },
+        "s2": {
+          "step": "02",
+          "title": "AI response",
+          "text": "Coslo answers instantly with your knowledge."
+        },
+        "s3": {
+          "step": "03",
+          "title": "Action",
+          "text": "Books the slot or suggests the right product."
+        },
+        "s4": {
+          "step": "04",
+          "title": "Human handoff",
+          "text": "Your team steps in for high value cases."
+        },
+        "s5": {
+          "step": "05",
+          "title": "Result",
+          "text": "Booking confirmed or checkout completed."
+        }
+      },
+      "analytics": {
+        "title": "Analytics insight",
+        "text": "Track conversations, bookings, and conversions by channel.",
+        "k1": {
+          "label": "Bookings",
+          "value": "+18 today"
+        },
+        "k2": {
+          "label": "Checkout assists",
+          "value": "+11 today"
+        }
+      },
+      "visual": {
+        "alt": "Coslo conversation preview",
+        "subtitle": "AI Assistant",
+        "userMessage": "Do you have a slot this week?",
+        "botMessage": "Yes. I can offer Tuesday 10:30 or Thursday 16:00.",
+        "userMessageTwo": "Tuesday works, please book it."
+      },
+      "result": {
+        "title": "Result",
+        "subtitle": "One conversation, measurable outcome",
+        "line1": "Appointments confirmed",
+        "line1Value": "+6",
+        "line2": "Qualified leads",
+        "line2Value": "+14"
+      }
+    },
+    "benefits": {
+      "title": "Outcomes teams care about",
+      "subtitle": "Less noise, more revenue impact.",
+      "cards": {
+        "c1": {
+          "title": "24/7 availability",
+          "text": "Never miss a message again."
+        },
+        "c2": {
+          "title": "Faster responses",
+          "text": "Instant replies keep customers engaged."
+        },
+        "c3": {
+          "title": "Less manual work",
+          "text": "Automate FAQs, availability, and scheduling."
+        },
+        "c4": {
+          "title": "More qualified leads",
+          "text": "Capture details before your team steps in."
+        },
+        "c5": {
+          "title": "Higher conversions",
+          "text": "Guide intent to bookings or checkout."
+        },
+        "c6": {
+          "title": "Better experience",
+          "text": "Consistent, helpful answers across channels."
+        }
+      }
+    },
+    "analytics": {
+      "title": "Measure what matters",
+      "subtitle": "Measure performance across services and commerce in one view.",
+      "kpis": {
+        "k1": "Conversations handled",
+        "k2": "Leads captured",
+        "k3": "Bookings confirmed",
+        "k4": "Checkout influence",
+        "k5": "Channel performance",
+        "k6": "Team handoff rate"
+      },
+      "note": "Clear KPIs without noisy dashboards."
+    },
+    "pricing": {
+      "title": "All features included. Choose your usage",
+      "subtitle": "Every plan includes the full platform. Only usage limits change.",
+      "helper": {
+        "title": "How credits work",
+        "text": "Credits are used when the AI replies or takes action for a customer.",
+        "note": "Most teams start free and scale as conversations grow.",
+        "items": {
+          "i1": "Credits apply to AI replies and assisted actions.",
+          "i2": "All channels and both assistants are included.",
+          "i3": "Upgrade only when your volume grows."
+        },
+        "badge": "Usage-based"
+      },
+      "plans": {
+        "free": {
+          "name": "Free",
+          "price": "$0.00",
+          "period": "/month",
+          "description": "Try the full experience with limited credits.",
+          "cta": "Start free",
+          "features": {
+            "f1": "All channels included",
+            "f2": "Both assistant types",
+            "f3": "Human handoff",
+            "f4": "Analytics dashboard"
+          }
+        },
+        "starter": {
+          "name": "Starter",
+          "price": "$39.99",
+          "period": "/month",
+          "description": "For early teams testing channels.",
+          "cta": "Choose Starter",
+          "features": {
+            "f1": "All channels included",
+            "f2": "Both assistant types",
+            "f3": "Human handoff",
+            "f4": "Analytics dashboard"
+          }
+        },
+        "growth": {
+          "name": "Growth",
+          "price": "$129.99",
+          "period": "/month",
+          "description": "For growing businesses with steady volume.",
+          "cta": "Choose Growth",
+          "badge": "Most popular",
+          "features": {
+            "f1": "All channels included",
+            "f2": "Both assistant types",
+            "f3": "Human handoff",
+            "f4": "Analytics dashboard"
+          }
+        },
+        "scale": {
+          "name": "Scale",
+          "price": "$399.99",
+          "period": "/month",
+          "description": "For high volume teams and multi location brands.",
+          "cta": "Choose Scale",
+          "features": {
+            "f1": "All channels included",
+            "f2": "Both assistant types",
+            "f3": "Human handoff",
+            "f4": "Analytics dashboard"
+          }
+        }
+      }
+    },
+    "faq": {
+      "title": "FAQs",
+      "items": {
+        "q1": {
+          "q": "Do I need a developer?",
+          "a": "No. You can connect channels, add knowledge, and go live without code."
+        },
+        "q2": {
+          "q": "Can I use only WhatsApp or only Shopify?",
+          "a": "Yes. Start with a single channel or assistant and expand when ready."
+        },
+        "q3": {
+          "q": "How does human handoff work?",
+          "a": "Coslo routes conversations to your team with full context whenever needed."
+        },
+        "q4": {
+          "q": "Can I use my own content like websites or PDFs?",
+          "a": "Yes. Add your site and documents so the assistant answers accurately."
+        },
+        "q5": {
+          "q": "Does it work with Shopify?",
+          "a": "Yes. The Shopify Assistant is designed for product discovery, carts, and orders."
+        },
+        "q6": {
+          "q": "How do credits work?",
+          "a": "Credits are used for AI replies. You only upgrade when volume grows."
+        },
+        "q7": {
+          "q": "How long does setup take?",
+          "a": "Most teams can launch in minutes and refine over the first week."
+        },
+        "q8": {
+          "q": "Can I start with one assistant and add the other later?",
+          "a": "Yes. Start with the assistant you need now and add the other anytime."
+        }
+      }
+    },
+    "finalCta": {
+      "title": "Pick the assistant that fits your business",
+      "subtitle": "Services & bookings or Shopify e-commerce, same platform, fast setup, measurable results.",
+      "primary": "Start free",
+      "secondary": "View demo"
+    },
+    "footer": {
+      "description": "Coslo is the AI platform for conversations and conversions.",
+      "legal": "Legal",
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Service",
+      "copyright": "© {{year}} Coslo AI. All rights reserved."
+    },
+    "heroChooser": {
+      "title": "Choose the path that fits your business",
+      "services": {
+        "title": "For services & bookings",
+        "subtitle": "FAQs, requests, and appointments"
+      },
+      "shopify": {
+        "title": "For Shopify & e-commerce",
+        "subtitle": "Products, orders, and checkout"
+      }
+    }
+  },
+  "login": {
+    "backToCredentials": "Back to email and password login",
+    "bullets": {
+      "b1": "A single dashboard for all your channels",
+      "b2": "Real-time statistics on bot performance",
+      "b3": "Secure access with two-factor authentication"
+    },
+    "cardTitle": "Login",
+    "divider": "or",
+    "email": "Email",
+    "forgotPassword": "Forgot password?",
+    "googleError": "Google login failed",
+    "kicker": "Secure access",
+    "loginError": "Login failed",
+    "mfaCodeLabel": "Security code",
+    "mfaError": "Invalid code. Please try again.",
+    "mfaHelp": "No longer have access to your authentication app? Use one of the backup codes you saved when you enabled 2FA.",
+    "mfaSubmit": "Confirm and log in",
+    "mfaSubmitting": "Verifying...",
+    "mfaSubtitle": "Open your authenticator app (Google Authenticator, 1Password, Authy, etc.) and enter the 6-digit code to finish logging in.",
+    "mfaTitle": "Two-factor authentication",
+    "noAccount": "Don’t have an account yet?",
+    "pageTitle": "Log in to your Coslo space",
+    "password": "Password",
+    "register": "Sign up",
+    "submit": "Log in",
+    "submitting": "Logging in...",
+    "subtitle": "Manage your AI assistants, review conversations and update settings in just a few clicks."
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "login": "Log In",
+    "logout": "Log Out",
+    "register": "Sign Up"
+  },
+  "onboardingLayout": {
+    "eyebrow": "Guided onboarding · {current}/{total}",
+    "steps": {
+      "booking": "Bookings",
+      "bookingDescription": "Configure how the assistant handles appointment bookings.",
+      "bot": "Create bot",
+      "botDescription": "Name your assistant and choose how customers will see it.",
+      "assistantType": "Assistant type",
+      "assistantTypeDescription": "Pick the assistant template that matches your business.",
+      "channels": "Channels",
+      "channelsDescription": "Connect where customers will chat with your assistant.",
+      "knowledge": "Knowledge",
+      "knowledgeDescription": "Add website content or documents so Coslo can answer with context.",
+      "leadAds": "Lead Ads",
+      "leadAdsDescription": "Sync your Facebook Lead Ads and send WhatsApp messages automatically.",
+      "plan": "Plan & billing",
+      "planDescription": "Pick a plan to continue onboarding.",
+      "shopify": "Shopify sync",
+      "shopifyDescription": "Link your Shopify store and sync products."
+    }
+  },
+  "onboardingComplete": {
+    "badge": "Setup completed",
+    "title": "Congratulations, you're all set!",
+    "subtitle": "Your assistant is ready. Test it now or continue in your bots dashboard.",
+    "loading": "Finalizing your onboarding...",
+    "tryAssistant": "Try your assistant now",
+    "goToBots": "Go to bots dashboard",
+    "readyWithName": "{{name}} is ready to chat.",
+    "fallbackBotName": "Your assistant",
+    "missingSlugHint": "Demo preview is not available yet. You can open it later from your bot list.",
+    "errors": {
+      "loadBot": "Unable to load bot details right now."
+    }
+  },
+  "assistantType": {
+    "title": "Choose your assistant type",
+    "subtitle": "Pick the template that matches your business. We'll enable the right features automatically.",
+    "selected": "Selected",
+    "actions": {
+      "saving": "Saving...",
+      "continue": "Continue to plans"
+    },
+    "errors": {
+      "loadBot": "Unable to load this bot right now.",
+      "saveFailed": "We couldn't save this assistant type. Please try again."
+    },
+    "service": {
+      "title": "Service & Booking Assistant",
+      "subtitle": "Best for services that rely on appointments and multi-channel support.",
+      "feature1": "RAG knowledge from your website and PDFs",
+      "feature2": "All channels: Web, WhatsApp, Instagram, Facebook",
+      "feature3": "Bookings enabled by default",
+      "feature4": "Lead Ads → WhatsApp automation"
+    },
+    "shopify": {
+      "title": "Shopify Assistant",
+      "subtitle": "Ideal for Shopify stores that want automated catalog support.",
+      "feature1": "Shopify knowledge source",
+      "feature2": "All channels: Web, WhatsApp, Instagram, Facebook",
+      "feature3": "Lead Ads → WhatsApp automation"
+    }
+  },
+  "policy": {
+    "hero": {
+      "intro": "Coslo is a multi-tenant SaaS platform that connects your business channels (Web Widget, WhatsApp, Facebook Messenger, Instagram Direct) to an AI assistant and optional booking automation with Google Calendar. This page explains what data we process, why we process it, how it’s protected, and what controls you have.",
+      "kicker": "Legal",
+      "lastUpdatedLabel": "Last updated",
+      "title": "Privacy & Data Policy"
+    },
+    "sections": {
+      "aiProcessing": {
+        "paragraphs": [
+          "Coslo is designed for business support use cases. Your assistant is configured to respond using the business knowledge sources you provide (for example: public website pages, PDFs, FAQs).",
+          "When generating a reply, we may send to our AI provider the End User’s message text, relevant retrieved knowledge snippets (RAG), and the assistant’s configuration (such as system instructions). This processing is necessary to provide the requested AI response.",
+          "We may keep logs of AI requests/responses to operate, debug, and improve the service. We do not use Customer conversation content to train or improve a shared/general-purpose AI model, and we do not use one business’s conversation data to build or improve another business’s assistant."
+        ],
+        "title": "6) AI processing and knowledge-scoped answers"
+      },
+      "appliesTo": {
+        "paragraphs": [
+          "This policy applies to (a) account owners and team members who use Coslo to configure and operate an assistant (the “Business Users”), and (b) end-users who message a business where the business uses Coslo to provide automated replies (the “End Users”).",
+          "In most business messaging scenarios, the business you contact determines how it uses its messaging channels and what information it provides to the assistant. If you are an End User, you should typically contact the business directly for requests about your conversation (access/deletion), unless the business instructs you otherwise."
+        ],
+        "title": "2) Who this policy applies to"
+      },
+      "automationEscalation": {
+        "paragraphs": [
+          "Businesses may use Coslo to automate parts of customer support on messaging channels. If a request requires a human, the business should provide a clear way for End Users to reach a person (for example: “talk to a human”, phone, email, or a support form). Coslo supports these workflows through configuration and business-defined escalation options."
+        ],
+        "title": "9) Automation and human escalation"
+      },
+      "changes": {
+        "paragraphs": [
+          "We may update this policy from time to time. When we do, we will update the “Last updated” date at the top of this page."
+        ],
+        "title": "18) Changes to this policy"
+      },
+      "children": {
+        "paragraphs": [
+          "Coslo is intended for business use. It is not designed to be directed to children, and businesses should ensure their use of messaging channels complies with applicable age-related requirements."
+        ],
+        "title": "16) Children"
+      },
+      "dataWeProcess": {
+        "list": [
+          "Account data: email address and authentication data (passwords are stored in hashed form), plus basic account settings.",
+          "Assistant configuration: bot name, slug, connected domain, system instructions/prompts, enabled features, and channel settings.",
+          "Knowledge base inputs: content you connect or upload to power the assistant, such as your public website content and PDFs (and related metadata like source URL / filename).",
+          "Knowledge base outputs: processed representations of the above content (for example: extracted text, chunks, and embeddings/vectors) used to retrieve relevant information.",
+          "Conversation data: message content exchanged with the assistant (text) and related metadata (timestamps, channel type, and identifiers required to route replies).",
+          "Integration identifiers: identifiers needed to connect channels and deliver messages (e.g., WhatsApp phone number IDs, Facebook Page IDs, Instagram Business IDs) and authorization credentials/tokens used to send/receive messages on your behalf.",
+          "Booking data (if enabled): information needed to schedule an appointment (e.g., name, contact details, service, date/time, and notes or custom fields you configure).",
+          "Service analytics (tenant-scoped): metrics for the business account owner such as number of conversations, message volumes, usage over time, and quality indicators (e.g., whether the assistant answered successfully).",
+          "Technical and security logs: operational logs (e.g., error logs, webhook delivery logs, and security events) used to run and protect the service."
+        ],
+        "paragraphs": [
+          "We process the following categories of data, depending on what you enable:"
+        ],
+        "title": "3) What data we collect / process"
+      },
+      "deletion": {
+        "paragraphs": [
+          "You can disconnect connected channels (WhatsApp, Facebook, Instagram) from your Coslo dashboard at any time.",
+          "You can delete a specific assistant from the Bot List page. This deletes the assistant and all data related to that assistant (including its knowledge base and conversations) from our primary systems.",
+          "You can delete your entire account from the Profile page (Danger Zone). This deletes your account and all related data from our primary systems.",
+          "Some limited technical data may remain for a short period in security logs and backups, then is overwritten or deleted.",
+          "For privacy questions or deletion requests, contact <a>support</a>."
+        ],
+        "title": "13) Deletion, disconnecting channels, and requests",
+        "useTrans": "true"
+      },
+      "googleCalendar": {
+        "paragraphs": [
+          "If you enable booking automation, Coslo will create calendar events in the Google Calendar you connect (or grant access to) and may check for availability/conflicts to propose time slots.",
+          "Events created in your Google Calendar are stored under your Google account and remain there unless you remove them directly in Google Calendar."
+        ],
+        "title": "10) Google Calendar bookings (optional feature)"
+      },
+      "howWeUse": {
+        "list": [
+          "Provide the service: create and manage accounts, assistants, dashboards, and connected channels.",
+          "Deliver messaging: receive messages from connected channels and send replies on behalf of the business.",
+          "Generate responses: retrieve relevant knowledge from your configured sources (website/PDFs/FAQs) and generate replies consistent with the assistant configuration.",
+          "Bookings (optional): check availability and create bookings/events in Google Calendar when enabled.",
+          "Analytics & quality monitoring: provide tenant-scoped analytics and allow the business owner to review conversation history to evaluate assistant performance, resolve customer requests, and improve content/configuration.",
+          "Security & reliability: detect abuse, prevent fraud, troubleshoot issues, and maintain platform stability."
+        ],
+        "paragraphs": [
+          "We use data to operate Coslo and deliver the features you enable:"
+        ],
+        "title": "4) How we use your data"
+      },
+      "messagingChannels": {
+        "paragraphs": [
+          "If you connect Meta channels, Coslo uses Meta APIs to deliver messages and receive events (webhooks). This requires storing channel identifiers (such as Page IDs / Business IDs / phone number IDs) and credentials/tokens needed to send and receive messages on your behalf.",
+          "Businesses are responsible for ensuring they have the appropriate rights/permissions to connect and use these channels, and for communicating with End Users about how messaging is handled.",
+          "Where required to provide the service, authorization credentials/tokens are stored securely (including encryption at rest) and access is restricted to authorized systems and personnel."
+        ],
+        "title": "8) Messaging channels (WhatsApp, Facebook, Instagram)"
+      },
+      "questions": {
+        "paragraphs": [
+          "For any questions about privacy, data use, or deletion requests, contact <a>support</a>."
+        ],
+        "title": "19) Questions",
+        "useTrans": "true"
+      },
+      "retention": {
+        "list": [
+          "Conversations & assistant configuration: retained until you delete the assistant, delete your account, or request deletion (subject to limited backup retention).",
+          "Knowledge base data: retained until you remove the source (website/PDF), delete the assistant, delete your account, or request deletion.",
+          "Operational logs: retained for a limited period for security, debugging, and reliability, then overwritten or deleted."
+        ],
+        "paragraphs": [
+          "We retain data to operate the service and provide the dashboard features you enable. In general:"
+        ],
+        "title": "12) Data retention"
+      },
+      "rights": {
+        "paragraphs": [
+          "Depending on your location (including the EU/EEA), you may have rights to access, correct, delete, or object to certain processing of your personal data. To exercise these rights, contact <a>support</a>.",
+          "If you are an End User messaging a business, you should typically contact that business first because it controls the conversation and how it is handled."
+        ],
+        "title": "17) Your rights",
+        "useTrans": "true"
+      },
+      "security": {
+        "paragraphs": [
+          "We apply reasonable technical and organizational measures to protect data, such as access controls and secure communications. No method of transmission or storage is 100% secure, but we continuously work to reduce risk and prevent unauthorized access."
+        ],
+        "title": "14) Security"
+      },
+      "shopifyData": {
+        "list": [
+          "Store identifiers (e.g., shop domain) and installed app metadata.",
+          "Product and variant data (title, handle, pricing, tags, images).",
+          "Inventory availability and stock status (if the store enables inventory access).",
+          "Order status lookups initiated by End Users (email + order number)."
+        ],
+        "paragraphs": [
+          "If you connect a Shopify store, we process Shopify store data needed to provide the integration. This may include store domain, product and variant details, inventory availability, and order lookups requested by End Users.",
+          "We access Shopify data using the Admin API on behalf of the store owner and only for the purposes of powering the assistant features (e.g., product discovery, availability checks, cart links, and order status).",
+          "We do not sell Shopify data or use it for advertising. We keep Shopify data limited to what is needed to provide the service and to support the business’s customer requests."
+        ],
+        "title": "5) Shopify app data and e-commerce interactions"
+      },
+      "tenantSeparation": {
+        "paragraphs": [
+          "Coslo is multi-tenant. Conversation data, knowledge bases, and analytics generated for one business account are isolated from other business accounts.",
+          "Businesses can review their own assistant’s conversation history inside the Coslo dashboard for operational purposes (e.g., quality checks, resolving requests, improving the knowledge base). Access is limited to authorized users of that same business account.",
+          "End Users do not get access to the business’s internal analytics dashboards or operational tools."
+        ],
+        "title": "7) Conversation review, access & multi-tenant separation"
+      },
+      "thirdParties": {
+        "list": [
+          "Meta (WhatsApp, Facebook, Instagram) for messaging delivery and webhooks.",
+          "AI provider (e.g., OpenAI) to generate assistant responses.",
+          "Google (Google Calendar) for booking automation.",
+          "Stripe for billing and payments.",
+          "Hosting/infrastructure providers to run the application and store data securely."
+        ],
+        "paragraphs": [
+          "We rely on third-party providers to deliver Coslo. Depending on your enabled features, data may be processed by:"
+        ],
+        "title": "11) Third-party services (subprocessors)"
+      },
+      "transfers": {
+        "paragraphs": [
+          "Some of our service providers may process data in countries different from your own. Where applicable, we rely on appropriate safeguards for international transfers (such as contractual protections) in line with applicable law."
+        ],
+        "title": "15) International data transfers"
+      },
+      "whoWeAre": {
+        "addressLabel": "Address",
+        "emailLabel": "Email",
+        "providerLabel": "Provider",
+        "serviceLabel": "Service",
+        "serviceValue": "Coslo (coslo.it)",
+        "title": "1) Who we are"
+      }
+    }
+  },
+  "profile": {
+    "common": {
+      "cancel": "Cancel"
+    },
+    "confirmDelete": "This will permanently delete your account, all your bots and their data. This action cannot be undone. Continue?",
+    "danger": {
+      "actions": {
+        "delete": "Delete my account",
+        "deleting": "Deleting…",
+        "deletingInline": "Deleting your account…"
+      },
+      "googleNote": "This account uses Google Sign-In. Click the button below to confirm with Google and delete your account and all associated bots and data.",
+      "passwordConfirm": {
+        "help": "For your security, we require your current password to delete the account.",
+        "label": "Confirm with your password"
+      },
+      "subtitle": "Permanently delete your account and all your bots, conversations, documents and usage data. This action cannot be undone.",
+      "title": "Danger zone",
+      "unsupported": "This account does not support self-service deletion yet."
+    },
+    "errors": {
+      "changePasswordFailed": "Failed to change password.",
+      "deleteFailed": "Failed to delete account.",
+      "loadFailed": "Failed to load account",
+      "updateProfileFailed": "Failed to update profile."
+    },
+    "loading": "Loading account...",
+    "mfa": {
+      "actions": {
+        "confirmEnable": "Confirm & enable 2FA",
+        "disabling": "Disabling…",
+        "enable": "Enable two-factor authentication",
+        "preparing": "Preparing…",
+        "verifying": "Verifying…"
+      },
+      "backupCodes": {
+        "body": "These codes are shown only once. Save them somewhere safe (password manager, secure note, printed copy). Each code can be used one time if you lose access to your phone.",
+        "copyAll": "Copy all codes",
+        "title": "Backup codes (save now)"
+      },
+      "disable": {
+        "backupCodeLabel": "Or a backup code",
+        "codeLabel": "Code from your app (6 digits)",
+        "confirm": "Confirm disable 2FA",
+        "confirmBody": "For your security, confirm with a code from your authenticator app or with a backup code.",
+        "intro": "If you ever change device or authenticator app, you can disable 2FA and set it up again.",
+        "open": "Disable two-factor authentication"
+      },
+      "enabledNote": "At each login, after your primary method (email/password or Google), we'll ask for a 6-digit code from your authenticator app.",
+      "errors": {
+        "backupCodesCopyFailed": "Unable to copy codes automatically. Please copy them manually and store them somewhere safe.",
+        "confirmFailed": "Could not confirm the code. Check the code and try again.",
+        "disableFailed": "Could not disable two-factor authentication. Check the code and try again.",
+        "disableRequiresCode": "Enter a code from your authenticator app or a backup code.",
+        "startFailed": "Failed to start two-factor authentication setup."
+      },
+      "recommendation": "We strongly recommend enabling two-factor authentication, especially if you reuse this email elsewhere or share devices.",
+      "setup": {
+        "codeLabel": "Code from your app",
+        "manualSecretLabel": "Manual secret:",
+        "step1Body": "Open your authenticator app (Google Authenticator, 1Password, Authy, etc.) and scan this code. If you can't scan the QR code, enter the secret manually.",
+        "step1Title": "1. Scan the QR code",
+        "step2Body": "After you've added the account to your app, enter the current 6-digit code to confirm everything works.",
+        "step2Title": "2. Enter the 6-digit code"
+      },
+      "status": {
+        "disabled": "Disabled",
+        "enabled": "Enabled"
+      },
+      "statusLabel": "Status",
+      "subtitle": "Extra protection for your account using an authenticator app. After login, you'll be asked for a 6-digit code from your phone.",
+      "success": {
+        "backupCodesCopied": "Backup codes copied to clipboard. Store them somewhere safe.",
+        "disabled": "Two-factor authentication disabled.",
+        "enabledSaveBackupCodes": "Two-factor authentication enabled. Save your backup codes in a safe place."
+      },
+      "title": "Two-factor authentication"
+    },
+    "pageSubtitle": "Manage your profile information, login and security.",
+    "pageTitle": "Account",
+    "password": {
+      "actions": {
+        "change": "Change password",
+        "updating": "Updating…"
+      },
+      "confirm": {
+        "label": "Confirm new password"
+      },
+      "current": {
+        "label": "Current password"
+      },
+      "errors": {
+        "mismatch": "New password and confirmation do not match."
+      },
+      "new": {
+        "help": "At least 8 characters, with upper & lower case, a number and a symbol.",
+        "label": "New password"
+      },
+      "success": "Password updated."
+    },
+    "profile": {
+      "actions": {
+        "save": "Save profile",
+        "saving": "Saving…"
+      },
+      "avatarAlt": "Avatar",
+      "avatarUrl": {
+        "help": "You can paste a link to an image (e.g. from your site or logo CDN).",
+        "label": "Avatar URL",
+        "placeholder": "https://…"
+      },
+      "displayName": {
+        "label": "Display name",
+        "placeholder": "Your name or company name"
+      },
+      "subtitle": "This information is visible inside your dashboard only.",
+      "success": "Profile updated.",
+      "title": "Profile"
+    },
+    "security": {
+      "emailLabel": "Email",
+      "googleOnlyNoteStrongPrefix": "This account uses",
+      "googleOnlyNoteSuffix": "Password login is not enabled.",
+      "googleSignInStrong": "Google Sign-In",
+      "loginMethod": {
+        "emailPassword": "Email & password",
+        "google": "Google",
+        "unknown": "Unknown"
+      },
+      "loginMethodLabel": "Login method",
+      "title": "Login & security"
+    },
+    "team": {
+      "errors": {
+        "botsRequired": "Select at least one bot.",
+        "emailRequired": "Enter an email address.",
+        "inviteFailed": "Failed to send invite.",
+        "loadFailed": "Failed to load team data.",
+        "revokeFailed": "Failed to revoke access.",
+        "updateFailed": "Failed to update member access."
+      },
+      "invite": {
+        "botLabel": "Bots they can access",
+        "emailLabel": "Team member email",
+        "emailPlaceholder": "name@company.com",
+        "noBots": "Create a bot first to invite teammates.",
+        "send": "Send invite",
+        "sending": "Sending..."
+      },
+      "invites": {
+        "columns": {
+          "actions": "Actions",
+          "bots": "Bots",
+          "email": "Email",
+          "sent": "Sent",
+          "conversations": "Conversations"
+        },
+        "empty": "No pending invites.",
+        "revoke": "Revoke invite",
+        "title": "Pending invites"
+      },
+      "loading": "Loading team data...",
+      "members": {
+        "cancel": "Cancel",
+        "columns": {
+          "actions": "Actions",
+          "bots": "Bots",
+          "lastLogin": "Last login",
+          "member": "Member",
+          "conversations": "Conversations"
+        },
+        "confirmRemove": "Remove this team member's access?",
+        "editMember": "Edit member",
+        "empty": "No team members yet.",
+        "never": "Never",
+        "remove": "Remove member",
+        "save": "Save",
+        "saving": "Saving...",
+        "title": "Team members"
+      },
+      "subtitle": "Invite teammates to access specific bots and reply as human.",
+      "success": {
+        "inviteRevoked": "Invite revoked.",
+        "inviteSent": "Invite sent successfully.",
+        "memberRevoked": "Member access revoked.",
+        "memberUpdated": "Member access updated."
+      },
+      "title": "Team access"
+    }
+  },
+  "referrer": {
+    "activeClients": "Active clients",
+    "commission": "Commission",
+    "conversions": "Conversions",
+    "linkHint": "Share this link. A cookie is set on click and applied at checkout.",
+    "noCodes": "No codes yet. Ask an admin to create one.",
+    "noPayouts": "No payout periods for this month.",
+    "noReferredUsers": "No referred users yet.",
+    "noTotals": "No commissions recorded for this month yet.",
+    "payoutPeriods": "Payout periods",
+    "referralCode": "Referral code",
+    "referredAt": "Registered at",
+    "referredUsers": "Referred signups",
+    "referredUsersList": "Referred users",
+    "revenue": "Revenue",
+    "statsSub": "UTC month summary.",
+    "statsTitle": "Month stats",
+    "subtitle": "Your codes, conversions and payouts.",
+    "title": "Referrer",
+    "totalsByCurrency": "Totals by currency",
+    "yourCodes": "Your referral codes"
+  },
+  "register": {
+    "alreadyAccount": "Already have an account?",
+    "bullets": {
+      "b1": "Multi-channel (web, WhatsApp, social, calendar)",
+      "b2": "Guided and customizable configuration",
+      "b3": "Multi-tenant plan designed for agencies and teams"
+    },
+    "cardTitle": "Sign up",
+    "email": "Email",
+    "errorGeneric": "Registration failed",
+    "errorPasswordMismatch": "Passwords do not match",
+    "errorPasswordRequirements": "The password does not meet the requirements. Please check the list below the password field.",
+    "googleError": "Google sign-in failed.",
+    "googleErrorMfaNotSupported": "Google sign-in does not support MFA for this account.",
+    "kicker": "Create your account",
+    "login": "Log in",
+    "pageTitle": "Create your Coslo account",
+    "password": "Password",
+    "passwordConfirm": "Confirm password",
+    "pwRules": {
+      "digit": "At least one digit (0–9)",
+      "lowercase": "At least one lowercase letter (a–z)",
+      "minLength": "At least 8 characters",
+      "special": "At least one special character (e.g. !@#$%^&*)",
+      "uppercase": "At least one uppercase letter (A–Z)"
+    },
+    "pwTitle": "Password requirements:",
+    "submit": "Create account",
+    "submitting": "Creating account...",
+    "subtitle": "In just a few minutes you connect your channels and have an AI assistant ready to answer your customers 24/7.",
+    "success": "Registration completed! Check your email and verify your account before logging in."
+  },
+  "shopifyOnboarding": {
+    "actions": {
+      "continue": "Continue to channels",
+      "link": "Link shop"
+    },
+    "errors": {
+      "inactiveShop": "This Shopify store is inactive. Please reinstall the app and try again.",
+      "linkedToOther": "This Shopify store is already linked to another Coslo account. Please unlink it first.",
+      "loadBot": "Unable to load this bot right now."
+    },
+    "subtitle": "We detected a Shopify install. Link the store to this bot and sync products.",
+    "syncHint": "Sync products to continue with onboarding.",
+    "title": "Connect your Shopify store"
+  },
+  "shopifyPage": {
+    "actions": {
+      "checkWidget": "Check widget config",
+      "checking": "Checking...",
+      "install": "Install / Update app",
+      "openDemo": "Open widget demo",
+      "redirecting": "Redirecting...",
+      "relink": "Relink to this bot",
+      "sync": "Sync products",
+      "syncing": "Syncing...",
+      "unlink": "Unlink"
+    },
+    "backToBot": "Back to bot",
+    "capabilities": {
+      "cart": "Generate add-to-cart and cart URLs using the Online Store cart endpoints.",
+      "noteBody": "This is a public app using Admin API scopes only. Storefront tokens are not used.",
+      "noteTitle": "Security",
+      "orders": "Lookup order status via Admin API with read_orders/read_fulfillments.",
+      "search": "Search and answer product questions using cached catalog data.",
+      "title": "Capabilities enabled",
+      "webhooks": "Webhooks for uninstall, catalog updates, and data protection."
+    },
+    "confirm": {
+      "unlink": "Unlink this Shopify shop from the assistant? The app will stay installed."
+    },
+    "connect": {
+      "shopDomain": "Shop domain",
+      "shopPlaceholder": "mystore.myshopify.com",
+      "subtitle": "Install the app on your Shopify store and link it to this assistant.",
+      "title": "Connect your store"
+    },
+    "errors": {
+      "invalidShop": "Enter a valid .myshopify.com domain (e.g. mystore.myshopify.com).",
+      "linkFailed": "Failed to link shop.",
+      "loadFailed": "Failed to load Shopify integration.",
+      "syncFailed": "Product sync failed.",
+      "unlinkFailed": "Failed to unlink shop.",
+      "widgetFailed": "Failed to fetch widget configuration.",
+      "revenueSaveFailed": "Unable to save Revenue AI settings."
+    },
+    "loading": "Loading Shopify integration...",
+    "missingId": "Missing bot id.",
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "subtitle": "Connect a Shopify store so this assistant can search products, build carts, and answer order questions.",
+    "success": {
+      "linked": "Shop linked to this assistant.",
+      "syncComplete": "Product sync completed.",
+      "unlinked": "Shop unlinked from this assistant.",
+      "revenueSaved": "Revenue AI settings saved."
+    },
+    "summary": {
+      "catalog": "Catalog cache",
+      "connectedShop": "Connected shop",
+      "currency": "Currency",
+      "lastSync": "Last sync",
+      "neverSynced": "Never",
+      "products": "Products",
+      "scopes": "Scopes",
+      "variants": "Variants"
+    },
+    "title": "Shopify",
+    "webhooks": {
+      "inventoryNote": "(if read_inventory)",
+      "title": "Registered webhooks",
+      "topics": {
+        "appUninstalled": "app/uninstalled",
+        "productsUpdate": "products/update",
+        "productsDelete": "products/delete",
+        "inventoryUpdate": "inventory_levels/update",
+        "customersDataRequest": "customers/data_request",
+        "customersRedact": "customers/redact",
+        "shopRedact": "shop/redact"
+      }
+    },
+    "widget": {
+      "botSlug": "Slug",
+      "connectedTo": "Connected to",
+      "demo": "Widget demo",
+      "notReady": "Connect a shop first.",
+      "scriptUrl": "Script URL",
+      "subtitle": "The widget is embedded automatically using a Shopify script tag.",
+      "title": "Widget & checkout"
+    },
+    "catalogSchema": {
+      "title": "Catalog Intelligence",
+      "subtitle": "Schema-driven attributes extracted from your catalog to power clerk-like product guidance.",
+      "lastBuild": "Last build",
+      "loading": "Loading...",
+      "none": "Not built yet",
+      "topAttributes": "Top attributes",
+      "coverage": "Coverage",
+      "noAttributes": "No schema data yet.",
+      "rebuild": "Rebuild schema",
+      "rebuilding": "Rebuilding...",
+      "success": "Catalog schema rebuilt.",
+      "error": "Failed to rebuild catalog schema."
+    },
+    "revenueAI": {
+      "title": "Revenue AI",
+      "subtitle": "Safe Shopify Revenue Optimizer. Suggestions appear only inside active conversations.",
+      "shopRequiredTitle": "Connect Shopify to continue",
+      "shopRequiredBody": "Link a Shopify store before enabling Revenue AI.",
+      "shopRequiredLabel": "Shopify store required",
+      "shopRequiredCta": "Link Shopify store",
+      "label": "Revenue AI",
+      "enabledLabel": "Enabled",
+      "modes": {
+        "auto": "Auto",
+        "soft": "Soft Sell",
+        "closer": "Closer"
+      },
+      "sellingModeHelp": "Auto assigns SOFT/CLOSER per session unless overridden. Soft is consultative, Closer is direct.",
+      "fields": {
+        "enabled": "Enabled",
+        "sellingMode": "Selling mode",
+        "offerEveryX": "Offer every X messages",
+        "maxOffersPerSession": "Max offers per session",
+        "cooldownMinutes": "Cooldown minutes",
+        "dedupeHours": "Dedupe window (hours)",
+        "upsellMinDelta": "Upsell min delta (%)",
+        "upsellMaxDelta": "Upsell max delta (%)",
+        "maxRecommendations": "Max recommendations",
+        "aggressiveness": "Aggressiveness (0-1)",
+        "categoryComplementMap": "Category complement map",
+        "categoryComplementHelp": "Define which categories or tags should be suggested together for cross-sell.",
+        "byProductType": "By product type",
+        "byProductTypeExample": "Example: Shoes -> Socks, Laces",
+        "baseProductType": "Base product type",
+        "complementTypes": "Complementary types (comma separated)",
+        "addProductTypeRule": "Add product type rule",
+        "byTag": "By tag",
+        "byTagExample": "Example: Running -> Waterproof",
+        "baseTag": "Base tag",
+        "complementTags": "Complementary tags (comma separated)",
+        "addTagRule": "Add tag rule",
+        "removeRule": "Remove",
+        "showAdvancedJson": "Show advanced JSON",
+        "hideAdvancedJson": "Hide advanced JSON",
+        "invalidJson": "The JSON format is not valid. Fix it or close Advanced JSON to keep using the visual editor.",
+        "guardrails": "Guardrails"
+      },
+      "info": {
+        "enabled": "Turns Revenue AI on or off for this bot. When off, no suggestions are shown.",
+        "sellingMode": "Controls the tone of suggestions. Auto picks a style per session. Soft is gentle and consultative. Closer is more direct.",
+        "offerEveryX": "How often the assistant is allowed to suggest something. Example: 6 means at most one suggestion every 6 messages.",
+        "maxOffersPerSession": "Hard cap on how many suggestions the assistant can show in one session.",
+        "cooldownMinutes": "Minimum time to wait between suggestions, even if the message count would allow it.",
+        "dedupeHours": "How long the assistant should avoid recommending the same product again.",
+        "upsellMinDelta": "Minimum price increase for an upsell compared to the original product.",
+        "upsellMaxDelta": "Maximum price increase allowed for upsell suggestions.",
+        "maxRecommendations": "How many options the system considers before choosing a single best suggestion.",
+        "aggressiveness": "How strongly the system leans toward higher-value suggestions. Lower is safer; higher is more assertive.",
+        "categoryComplementMap": "Rules that tell the assistant which categories or tags pair well together (for cross-sell).",
+        "guardrails": "Safety rules that prevent suggestions during sensitive support topics (refunds, complaints, order issues)."
+      },
+      "safety": {
+        "title": "Safety rules",
+        "body": "No outbound messages. No offers during tracking, returns, cancellations, complaints, or order issues. Suggestions appear only inside active chat flows."
+      },
+      "actions": {
+        "save": "Save Revenue AI",
+        "saving": "Saving..."
+      },
+      "readOnly": "Team members have read-only access.",
+      "metrics": {
+        "impressions": "Impressions",
+        "clicks": "Clicks",
+        "addToCart": "Add to cart",
+        "checkout": "Checkout",
+        "revenueCents": "Influenced revenue (cents)"
+      }
+    },
+    "catalogContext": {
+      "title": "Catalog context",
+      "subtitle": "Summarize your catalog to improve recommendations.",
+      "rebuild": "Rebuild context",
+      "rebuilding": "Rebuilding...",
+      "save": "Save context",
+      "saving": "Saving...",
+      "lastBuild": "Last build",
+      "loading": "Loading...",
+      "none": "Not available",
+      "sampleSize": "Sample size",
+      "summaryLabel": "Summary",
+      "summaryPlaceholder": "Short summary of your catalog",
+      "categories": "Categories",
+      "useCases": "Use cases",
+      "audiences": "Audiences",
+      "attributes": "Notable attributes",
+      "listHint": "Comma-separated list",
+      "pricePositioning": "Price positioning",
+      "priceMin": "Min price",
+      "priceMax": "Max price",
+      "priceCurrency": "Price currency",
+      "success": "Catalog context rebuilt.",
+      "error": "Failed to rebuild catalog context.",
+      "saved": "Catalog context saved.",
+      "saveError": "Unable to save catalog context."
+    }
+  },
+  "sidebar": {
+    "account": "Account",
+    "admin": "Admin",
+    "billing": "Billing",
+    "bookings": "Bookings",
+    "bots": "Bots",
+    "conversations": "Conversations",
+    "dashboard": "Dashboard",
+    "emails": "Emails",
+    "integrations": "Integrations",
+    "openai": "OpenAI Usage",
+    "payments": "Payments",
+    "plans": "Plans",
+    "referrals": "Referrals",
+    "users": "Users",
+    "toggle": "Toggle sidebar"
+  },
+  "terms": {
+    "hero": {
+      "intro": "These Terms & Conditions govern your use of Coslo (the “Platform”), a multi-tenant SaaS service that connects your business channels (e.g., Web Widget, WhatsApp, Facebook Messenger, Instagram Direct) to an AI assistant and, if enabled, booking automation (e.g., Google Calendar). By using the Platform, you agree to these Terms.",
+      "kicker": "Legal",
+      "lastUpdatedLabel": "Last updated",
+      "title": "Terms & Conditions"
+    },
+    "sections": {
+      "account": {
+        "paragraphs": [
+          "You must provide accurate and up-to-date information when creating an account and keep your credentials secure.",
+          "You are responsible for activity under your account and for safeguarding connected channels, tokens, and permissions.",
+          "We may suspend or terminate access if we reasonably believe there is abuse, unlawful activity, or a violation of these Terms or Third-Party policies."
+        ],
+        "title": "5) Account, security, and access"
+      },
+      "aiLimitations": {
+        "paragraphs": [
+          "Assistant outputs are generated automatically based on your configuration, knowledge sources, and third-party AI models.",
+          "AI may produce inaccurate or incomplete outputs. The Platform is provided on a best-effort basis and does not replace professional advice (legal/medical/tax).",
+          "You are responsible for reviewing and using assistant outputs appropriately, especially in regulated or high-impact contexts.",
+          "We do not use Customer conversation content to train or improve a shared/general-purpose AI model, and we do not use one Customer’s conversation data to build or improve another Customer’s assistant."
+        ],
+        "title": "9) AI: limitations and responsibilities"
+      },
+      "availabilitySupport": {
+        "paragraphs": [
+          "We aim to keep the Platform reasonably available, but availability may be affected by maintenance, updates, and Third-Party Services.",
+          "Support may vary by plan. For support, contact <a>{{email}}</a>."
+        ],
+        "title": "11) Availability, maintenance, and support",
+        "useTrans": "true"
+      },
+      "changes": {
+        "paragraphs": [
+          "We may update the Platform and these Terms from time to time. If we make material changes, we may provide notice via email or in-product notifications.",
+          "Continued use of the Platform after changes take effect constitutes acceptance of the updated Terms."
+        ],
+        "title": "17) Changes to the Platform and these Terms"
+      },
+      "contacts": {
+        "paragraphs": [
+          "For questions about these Terms, contact <a>{{email}}</a>."
+        ],
+        "title": "20) Contact",
+        "useTrans": "true"
+      },
+      "definitions": {
+        "paragraphs": [
+          "For the purposes of these Terms: (a) “Platform” means Coslo; (b) “Customer” means the business user creating an account; (c) “End Users” means people messaging the Customer; (d) “Customer Content” means content and data configured or provided by the Customer (including knowledge sources and conversations); (e) “Third-Party Services” means integrated external services (e.g., Meta channels, Google Calendar, AI providers, Stripe, hosting)."
+        ],
+        "title": "2) Definitions"
+      },
+      "indemnity": {
+        "paragraphs": [
+          "You agree to indemnify and hold us harmless from claims, damages, losses, and expenses (including reasonable legal fees) arising from: (a) your unlawful or non-compliant use of the Platform; (b) your violation of these Terms or Third-Party policies; (c) infringement or violations arising from your Customer Content."
+        ],
+        "title": "16) Indemnity"
+      },
+      "ip": {
+        "paragraphs": [
+          "All rights in the Platform (software, design, trademarks, documentation) remain with the Provider and its licensors.",
+          "You retain rights to your Customer Content. You grant us a limited license to process Customer Content only to provide and operate the Platform."
+        ],
+        "title": "12) Intellectual property"
+      },
+      "lawForum": {
+        "paragraphs": [
+          "Unless otherwise agreed in writing, these Terms are governed by Italian law. Any dispute shall be subject to the exclusive jurisdiction of the court where the Provider has its registered office, except where mandatory law provides otherwise."
+        ],
+        "title": "18) Governing law and jurisdiction"
+      },
+      "liability": {
+        "paragraphs": [
+          "To the maximum extent permitted by law, our total liability is limited to the amounts you paid us in the twelve (12) months preceding the event giving rise to the claim.",
+          "We are not liable for indirect, incidental, consequential, punitive damages, loss of profits, loss of business, or loss of opportunities."
+        ],
+        "title": "15) Limitation of liability"
+      },
+      "permittedUseCompliance": {
+        "paragraphs": [
+          "You are responsible for your assistants, Customer Content, and interactions with End Users.",
+          "You must not use Coslo for unlawful activity, spam, phishing, malware, harassment, or infringement of third-party rights.",
+          "You must comply with Third-Party terms/policies for connected channels (including WhatsApp/Meta policies). These policies may restrict automation and AI usage.",
+          "Coslo is intended for business support use cases (support, information, bookings, lead handling). You must not configure or promote it as a general-purpose chatbot unrelated to your business, nor use it in ways that violate channel rules.",
+          "Where required, you must provide End Users with a clear escalation path to reach a human (e.g., “talk to a human”, phone, email, support form). You are responsible for configuring and maintaining the human-contact option presented to End Users on your connected channels."
+        ],
+        "title": "7) Permitted use, prohibited use, and channel compliance"
+      },
+      "plansPayments": {
+        "paragraphs": [
+          "Access may be offered through free plans, trials, or paid subscriptions as described in the Platform or on our website.",
+          "Paid plans are billed on a recurring basis (monthly/annual) via our payment processor (e.g., Stripe). You authorize recurring charges while your subscription remains active.",
+          "Unless required by law or explicitly stated in your plan, payments are non-refundable."
+        ],
+        "title": "6) Plans, subscriptions, and payments"
+      },
+      "privacyMultiTenant": {
+        "paragraphs": [
+          "Coslo is multi-tenant: each Customer’s data is logically separated from other tenants and accessible only to authorized users of the same Customer account.",
+          "Our Privacy & Data Policy forms part of these Terms and describes what data we process, why, retention, and the available deletion controls (including how to delete assistants and accounts).",
+          "Depending on your use case, a Data Processing Addendum (DPA) may be made available for business Customers."
+        ],
+        "title": "8) Privacy, data handling, and multi-tenant separation"
+      },
+      "provider": {
+        "labels": {
+          "address": "Address",
+          "contact": "Contact",
+          "provider": "Provider"
+        },
+        "title": "1) Provider information"
+      },
+      "scope": {
+        "paragraphs": [
+          "Coslo allows Customers to create and manage AI assistants for messaging channels, connect knowledge sources (e.g., website/PDFs), automate workflows (e.g., bookings), integrate Third-Party Services, and view tenant-scoped analytics and conversation history.",
+          "The Platform is intended for business/professional use. If you use Coslo on behalf of an organization, you represent that you have authority to bind that organization to these Terms."
+        ],
+        "title": "3) Service scope and eligibility"
+      },
+      "shopifyApp": {
+        "paragraphs": [
+          "If you connect a Shopify store, you authorize the Platform to access store data via the Shopify Admin API for the purposes of powering assistant features (product discovery, availability checks, cart links, and order status).",
+          "You confirm you have the right to grant this access and to use the data to serve End Users. You are responsible for complying with Shopify policies and applicable laws.",
+          "You must not use the Platform to access or process Shopify data for purposes unrelated to your business or outside the permitted scopes."
+        ],
+        "title": "4) Shopify app terms"
+      },
+      "specificApproval": {
+        "paragraphs": [
+          "Under Articles 1341 and 1342 of the Italian Civil Code, you specifically approve the clauses on suspension/termination, warranty disclaimers, limitation of liability, indemnity, changes to terms, and governing law/jurisdiction.",
+          "Operational note: for stronger enforceability, consider implementing a dedicated checkbox at signup for this specific approval."
+        ],
+        "title": "19) Specific approval (Italy)"
+      },
+      "termination": {
+        "paragraphs": [
+          "Your account remains active while you maintain an active plan or otherwise have access to the Platform.",
+          "You may cancel your subscription according to the cancellation flow available in the Platform.",
+          "We may suspend or terminate access for material breaches, non-payment, or unlawful use.",
+          "Events created in your Google Calendar remain in your Google account unless you remove them there."
+        ],
+        "title": "13) Term, suspension, and termination"
+      },
+      "thirdParties": {
+        "paragraphs": [
+          "The Platform integrates with Third-Party Services (e.g., Meta channels, Google Calendar, AI providers, Stripe, hosting). Your use of those services is subject to their own terms and policies.",
+          "We are not responsible for outages, restrictions, or changes imposed by Third-Party Services, including revoked API access or policy changes."
+        ],
+        "title": "10) Third-Party Services"
+      },
+      "warranty": {
+        "paragraphs": [
+          "The Platform is provided “as is” and “as available”, to the maximum extent permitted by law. We disclaim all warranties, express or implied.",
+          "We do not warrant that the Platform will be uninterrupted, error-free, or that AI outputs will always be accurate."
+        ],
+        "title": "14) Disclaimer of warranties"
+      }
+    }
+  },
+  "verifyEmail": {
+    "backToLogin": "You can now go back to",
+    "genericError": "Verification failed.",
+    "invalidOrExpired": "Invalid or expired token.",
+    "loading": "We are verifying your email...",
+    "loginLink": "login",
+    "missingToken": "Verification token missing.",
+    "successDefault": "Email successfully verified!",
+    "title": "Verify email"
+  },
+  "whatsappTemplates": {
+    "actions": {
+      "create": "Create template",
+      "edit": "Edit",
+      "update": "Update template"
+    },
+    "addTemplate": "New template",
+    "buttons": {
+      "phone": "Phone number",
+      "quickReply": "Quick reply",
+      "remove": "Remove",
+      "textPlaceholder": "Button label",
+      "url": "URL"
+    },
+    "category": {
+      "authentication": "Authentication",
+      "marketing": "Marketing",
+      "utility": "Utility"
+    },
+    "columns": {
+      "name": "Template",
+      "status": "Status",
+      "updated": "Last update"
+    },
+    "empty": "No WhatsApp templates found for this bot yet.",
+    "emptyCta": "Create your first template",
+    "facebookNotConnectedBody": "Lead Ads from Facebook will not be received until you connect a Facebook page on the Channels page.",
+    "filters": {
+      "category": "Category",
+      "categoryAll": "All",
+      "search": "Search",
+      "searchPlaceholder": "Search by name or language…",
+      "status": "Status",
+      "statusAll": "All",
+      "statusApproved": "Approved",
+      "statusPending": "Pending",
+      "statusRejected": "Rejected"
+    },
+    "form": {
+      "addButton": "Add button",
+      "body": "Body",
+      "bodyHelp": "Keep it clear and concise. Variables will be filled at send time.",
+      "bodyPlaceholder": "Main message text. Use {{1}}, {{2}}, … for variables.",
+      "buttons": "Buttons",
+      "buttonsHelp": "Optional quick reply, URL or phone buttons.",
+      "category": "Category",
+      "footer": "Footer (optional)",
+      "footerPlaceholder": "Small line below the message (e.g. legal or brand).",
+      "header": "Header (optional)",
+      "headerHelp": "Up to 60 characters. You can use variables like {{1}}.",
+      "headerPlaceholder": "Short title shown above the body…",
+      "language": "Language",
+      "languageHelp": "Use WhatsApp language codes like en_US, it_IT, es_ES, de_DE, fr_FR?",
+      "name": "Template name",
+      "nameHelp": "Lowercase, numbers and underscores only. This is not visible to end users.",
+      "namePlaceholder": "e.g. order_update",
+      "languagePlaceholder": "en_US"
+    },
+    "history": {
+      "title": "Template history"
+    },
+    "leadAutomation": {
+      "consentField": "Consent field name (optional)",
+      "consentFieldHelp": "Name of the yes/no field used for WhatsApp consent.",
+      "errors": {
+        "missingConsentField": "If you require explicit opt-in, you must specify the consent field name.",
+        "missingPhoneField": "Please specify the phone field name from your lead forms.",
+        "missingTemplate": "Please select an approved WhatsApp template."
+      },
+      "loading": "Loading automation settings…",
+      "phoneField": "Phone field name",
+      "phoneFieldHelp": "Name of the form field that contains the phone number in the lead payload.",
+      "requireOptIn": "Require explicit WhatsApp opt-in",
+      "save": "Save automation",
+      "saveError": "Failed to save lead automation settings.",
+      "saveSuccess": "Lead automation settings saved.",
+      "template": "Template to send",
+      "templateHelp": "Template used for new leads from Meta. Only approved templates are available.",
+      "templatePlaceholder": "Select an approved template…",
+      "title": "Lead Ads → WhatsApp automation",
+      "placeholders": {
+        "phoneField": "phone_number",
+        "consentField": "whatsapp_opt_in"
+      }
+    },
+    "leadFeatureGoToFeatures": "Go to Features",
+    "leadFeatureNotEnabledBody": "To configure Lead Ads → WhatsApp automation, first enable the Lead Ads add-on on the Features page for this bot.",
+    "leadFeatureNotEnabledTitle": "Lead Ads feature not enabled",
+    "leads": {
+      "createdAt": "Received at",
+      "empty": "No leads received yet.",
+      "loading": "Loading leads…",
+      "messageSent": "Message sent",
+      "phone": "Phone",
+      "refresh": "Refresh",
+      "refreshError": "Failed to refresh leads.",
+      "requireFacebook": "Connect a Facebook page on the Channels page to start receiving leads.",
+      "status": "Status",
+      "title": "Recent leads"
+    },
+    "loadingTemplates": "Loading templates…",
+    "messages": {
+      "created": "Template created.",
+      "saveFailed": "Failed to save template.",
+      "updated": "Template updated."
+    },
+    "modal": {
+      "createTitle": "New WhatsApp template",
+      "editTitle": "Edit WhatsApp template"
+    },
+    "notConnectedBody": "You can configure Lead Ads and see incoming leads, but to send WhatsApp templates you must connect a WhatsApp business number on the Channels page.",
+    "onboarding": {
+      "autoSaveHint": "Settings and templates will be saved when you click “Finish onboarding”.",
+      "automationHint": "When a new lead arrives from Meta, Coslo will send a WhatsApp template and optionally check for explicit opt-in.",
+      "common": {
+        "skip": "Skip for now"
+      },
+      "disabledHint": "You can keep Lead Ads automation turned off for now and still complete onboarding. You’ll be able to come back here later from the app and turn it on.",
+      "errors": {
+        "channelsNotReady": "To enable this automation, connect both Facebook and WhatsApp in the Channels step.",
+        "save": "Could not save Lead Ads configuration.",
+        "loadBotChannels": "Failed to load bot or channels.",
+        "loadTemplates": "Failed to load WhatsApp templates.",
+        "loadAutomation": "Failed to load Lead Ads ? WhatsApp automation."
+      },
+      "next": "Finish onboarding",
+      "previewLabel": "Selected template:",
+      "requirementsTitle": "Connection status",
+      "subtitle": "Choose or create a WhatsApp template and map the fields from your Lead Ads forms.",
+      "title": "Connect Facebook Lead Ads and WhatsApp automation",
+      "toggleDisabledHint": "Connect both channels to turn this automation on.",
+      "toggleOff": "Lead Ads automation is OFF",
+      "toggleOn": "Lead Ads automation is ON",
+      "toggleOnHint": "New leads from your Facebook forms will automatically receive a WhatsApp message using the template below.",
+      "warningFacebook": "Connect a Facebook page in the Channels step so Coslo can read new leads.",
+      "warningTitle": "Connect channels to activate automation",
+      "warningWhatsapp": "Connect a WhatsApp Business number in the Channels step to send messages."
+    },
+    "status": {
+      "facebookNotConnected": "Not connected",
+      "facebookStatus": "Facebook status",
+      "notConnected": "Not connected",
+      "whatsappStatus": "WhatsApp status"
+    },
+    "subtitle": "Lead Ads → WhatsApp automation for {{name}}",
+    "templates": {
+      "requireWhatsapp": "Connect a WhatsApp number on the Channels page to sync and manage templates."
+    },
+    "title": "WhatsApp message templates",
+    "titleFallback": "WhatsApp templates",
+    "placeholders": {
+      "phoneField": "phone_number",
+      "consentField": "whatsapp_opt_in",
+      "language": "en_US",
+      "phoneExample": "+1 555 123456"
+    }
+  },
+  "pagination": {
+    "ariaLabel": "Pagination",
+    "goToPrevious": "Go to previous page",
+    "previous": "Previous",
+    "goToNext": "Go to next page",
+    "next": "Next",
+    "morePages": "More pages"
+  },
+  "carousel": {
+    "previous": "Previous slide",
+    "next": "Next slide"
+  },
+  "notFound": {
+    "title": "Oops! Page not found",
+    "returnHome": "Return to Home"
+  },
+  "chat": {
+    "productFallback": "Product",
+    "addedToCart": "Added to cart.",
+    "sendFailed": "Failed to send message",
+    "poweredBy": "Powered by Coslo"
+  },
+  "widgetChat": {
+    "noSlug": "No bot slug provided.",
+    "loading": "Loading...",
+    "notFound": "Bot not found.",
+    "loadFailed": "Failed to load bot."
+  }
+}

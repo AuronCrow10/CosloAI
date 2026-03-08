@@ -1,0 +1,1038 @@
+﻿// routes/conversations.ts
+import { Router, Request, Response } from "express";
+import { prisma } from "../prisma/prisma";
+import { requireAuth } from "../middleware/auth";
+import {
+  evaluateConversation,
+  ConversationEvalResult
+} from "../services/conversationAnalyticsService";
+import axios from "axios";
+import { config } from "../config";
+import { logMessage, getHumanHandoffMessage } from "../services/conversationService";
+import { sendGraphText } from "./metaWebhook";
+import { MessageRole, ConversationMode } from "@prisma/client";
+import type { Server as SocketIOServer } from "socket.io";
+import { userCanAccessBot } from "../services/teamAccessService";
+import {
+  computeAssignedStyle,
+  computeStyleUsed,
+  RevenueAIMode,
+  RevenueAIStyle
+} from "../services/revenueAIService";
+
+
+
+async function sendWhatsappTextForConversation(
+  botId: string,
+  waUserId: string,
+  text: string
+): Promise<void> {
+  if (!config.whatsappApiBaseUrl) {
+    throw new Error("WhatsApp API base URL not configured");
+  }
+
+  const channel = await prisma.botChannel.findFirst({
+    where: { botId, type: "WHATSAPP" }
+  });
+
+  if (!channel) {
+    throw new Error("No WhatsApp channel configured for this bot");
+  }
+
+  const phoneNumberId = channel.externalId;
+  const url = `${config.whatsappApiBaseUrl}/${phoneNumberId}/messages`;
+  const accessToken = channel.accessToken || config.whatsappAccessToken;
+
+  if (!accessToken) {
+    throw new Error("Missing WhatsApp access token");
+  }
+
+  await axios.post(
+    url,
+    {
+      messaging_product: "whatsapp",
+      to: waUserId,
+      text: { body: text }
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json"
+      },
+      timeout: 10000
+    }
+  );
+}
+
+
+async function resolveMetaUserDisplayName(
+  channelType: "FACEBOOK" | "INSTAGRAM",
+  botId: string,
+  userId: string
+): Promise<string | null> {
+  if (!config.metaGraphApiBaseUrl) {
+    return null;
+  }
+
+  // Any page token for this bot & channel type is fine to read user profiles
+  const channel = await prisma.botChannel.findFirst({
+    where: { botId, type: channelType }
+  });
+
+  if (!channel || !channel.accessToken) {
+    return null;
+  }
+
+  const url = `${config.metaGraphApiBaseUrl}/${userId}`;
+  const fields =
+    channelType === "FACEBOOK"
+      ? "first_name,last_name,name"
+      : "username,name";
+
+  try {
+    const resp = await axios.get(url, {
+      params: {
+        access_token: channel.accessToken,
+        fields
+      },
+      timeout: 8000
+    });
+
+    const data: any = resp.data || {};
+
+    if (channelType === "FACEBOOK") {
+      const fullName =
+        data.name ||
+        [data.first_name, data.last_name].filter(Boolean).join(" ");
+      return fullName || null;
+    } else {
+      // INSTAGRAM
+      const username: string | undefined = data.username;
+      const name: string | undefined = data.name;
+      return username || name || null;
+    }
+  } catch (err: any) {
+    console.warn("Failed to resolve Meta user display name", {
+      channelType,
+      botId,
+      userId,
+      status: err?.response?.status,
+      data: err?.response?.data
+    });
+    return null;
+  }
+}
+
+const router = Router();
+
+// tutte queste route richiedono l'utente loggato
+router.use("/conversations", requireAuth);
+
+/**
+ * GET /api/bots/:botId/conversations
+ * Ritorna le conversazioni per un bot dell'utente corrente
+ * in modo paginato (20 per pagina) con l'ultima valutazione (se esiste).
+ *
+ * Query params:
+ *   - page: numero pagina (1-based, default 1)
+ */
+router.get(
+  "/conversations/bots/:botId",
+  async (req: Request, res: Response) => {
+    const { botId } = req.params;
+
+    // 1) Sicurezza: verifica che il bot appartenga all'utente loggato
+    const canAccess = await userCanAccessBot(req.user!, botId);
+    if (!canAccess) {
+      return res.status(404).json({ error: "Bot not found" });
+    }
+
+    // ---- Pagination ----
+    const rawPage = Array.isArray(req.query.page)
+      ? req.query.page[0]
+      : req.query.page;
+
+    const pageStr =
+      typeof rawPage === "string" && rawPage.trim() !== ""
+        ? rawPage
+        : "1";
+
+    let page = parseInt(pageStr, 10);
+    if (isNaN(page) || page < 1) page = 1;
+
+    const pageSize = 20; // fixed as requested
+    const skip = (page - 1) * pageSize;
+
+
+    // 2) Count totale + page corrente
+    const [totalItems, conversations] = await prisma.$transaction([
+      prisma.conversation.count({ where: { botId } }),
+      prisma.conversation.findMany({
+        where: { botId },
+        orderBy: { lastMessageAt: "desc" },
+        include: {
+          evals: {
+            orderBy: { createdAt: "desc" },
+            take: 1
+          }
+        },
+        skip,
+        take: pageSize
+      })
+    ]);
+
+    const totalPages =
+      totalItems === 0 ? 0 : Math.ceil(totalItems / pageSize);
+
+    const items = conversations.map((c) => ({
+      id: c.id,
+      botId: c.botId,
+      channel: c.channel,
+      externalUserId: c.externalUserId,
+      lastMessageAt: c.lastMessageAt,
+      mode: c.mode,
+      createdAt: c.createdAt,
+      updatedAt: c.updatedAt,
+      latestEval: c.evals[0]
+        ? {
+            score: c.evals[0].score,
+            label: c.evals[0].label,
+            isAuto: c.evals[0].isAuto,
+            createdAt: c.evals[0].createdAt
+          }
+        : null
+    }));
+
+    res.json({
+      items,
+      page,
+      pageSize,
+      totalItems,
+      totalPages
+    });
+  }
+);
+
+/**
+ * GET /api/conversations/:id/messages
+ * Ritorna tutti i messaggi di una conversazione,
+ * solo se la conversazione appartiene a un bot dell'utente.
+ */
+router.get(
+  "/conversations/:id/messages",
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    // 1) Carica la conversazione + bot per verificare ownership
+    const conversation = await prisma.conversation.findFirst({
+      where: { id },
+      include: { bot: true }
+    });
+
+    if (!conversation) {
+      return res.status(404).json({ error: "Conversation not found" });
+    }
+    const canAccess = await userCanAccessBot(req.user!, conversation.botId);
+    if (!canAccess) {
+      return res.status(404).json({ error: "Conversation not found" });
+    }
+
+    // 2) Carica i messaggi, ordinati cronologicamente
+    const messages = await prisma.message.findMany({
+      where: { conversationId: id },
+      orderBy: { createdAt: "asc" }
+    });
+
+    res.json(messages);
+  }
+);
+
+
+/**
+ * GET /api/conversations/:id/details
+ * Returns conversation metadata + human-friendly sender/receiver info
+ * (business side vs external user).
+ */
+router.get(
+  "/conversations/:id/details",
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    const conversation = await prisma.conversation.findFirst({
+      where: { id },
+      include: { bot: true }
+    });
+
+    if (!conversation) {
+      return res.status(404).json({ error: "Conversation not found" });
+    }
+    const canAccess = await userCanAccessBot(req.user!, conversation.botId);
+    if (!canAccess) {
+      return res.status(404).json({ error: "Conversation not found" });
+    }
+
+    let businessTitle: string = conversation.channel;
+    let businessSubtitle: string | null = null;
+    let userDisplayName: string | null = null;
+
+    // BotChannel is used for "your side" info + Meta tokens
+    const channel = await prisma.botChannel.findFirst({
+      where: { botId: conversation.botId, type: conversation.channel }
+    });
+
+    if (channel) {
+      const meta: any = channel.meta || {};
+
+      if (conversation.channel === "WHATSAPP") {
+        const displayPhoneNumber =
+          meta.displayPhoneNumber || meta.display_phone_number;
+        const verifiedName = meta.verifiedName || meta.verified_name;
+
+        businessTitle = "WhatsApp Business";
+        businessSubtitle = displayPhoneNumber || channel.externalId;
+        if (verifiedName) {
+          businessSubtitle = businessSubtitle
+            ? `${businessSubtitle} â€“ ${verifiedName}`
+            : verifiedName;
+        }
+      } else if (conversation.channel === "FACEBOOK") {
+        businessTitle = "Facebook Page";
+        businessSubtitle = meta.pageName || channel.externalId;
+
+        userDisplayName = await resolveMetaUserDisplayName(
+          "FACEBOOK",
+          conversation.botId,
+          conversation.externalUserId
+        );
+      } else if (conversation.channel === "INSTAGRAM") {
+        businessTitle = "Instagram Business";
+        businessSubtitle =
+          meta.igUsername || meta.igName || meta.pageName || channel.externalId;
+
+        userDisplayName = await resolveMetaUserDisplayName(
+          "INSTAGRAM",
+          conversation.botId,
+          conversation.externalUserId
+        );
+      } else if (conversation.channel === "WEB") {
+        businessTitle = "Website widget";
+        businessSubtitle = channel.externalId || null;
+      }
+    }
+
+
+    const lastUserMessage = await prisma.message.findFirst({
+      where: { conversationId: id, role: MessageRole.USER },
+      orderBy: { createdAt: "desc" }
+    });
+
+    const lastUserMessageAt = lastUserMessage?.createdAt ?? null;
+    const revenueAISession = await prisma.revenueAISession.findUnique({
+      where: { conversationId: conversation.id }
+    });
+
+    const mode = (conversation.bot?.revenueAIMode || "AUTO") as RevenueAIMode;
+    const assignedStyle = revenueAISession?.assignedStyle
+      ? (revenueAISession.assignedStyle as RevenueAIStyle)
+      : computeAssignedStyle(conversation.id);
+
+    const now = new Date();
+    const sessionIdForOverride =
+      conversation.channel === "WEB" ? conversation.externalUserId : null;
+
+    const override = sessionIdForOverride
+      ? await prisma.revenueAIStyleOverride.findFirst({
+          where: {
+            botId: conversation.botId,
+            sessionId: sessionIdForOverride,
+            OR: [{ expiresAt: null }, { expiresAt: { gt: now } }]
+          },
+          orderBy: { updatedAt: "desc" }
+        })
+      : await prisma.revenueAIStyleOverride.findFirst({
+          where: {
+            botId: conversation.botId,
+            conversationId: conversation.id,
+            OR: [{ expiresAt: null }, { expiresAt: { gt: now } }]
+          },
+          orderBy: { updatedAt: "desc" }
+        });
+
+    const overrideStyle = override?.styleOverride
+      ? (override.styleOverride as RevenueAIStyle)
+      : null;
+
+    const effectiveStyle = computeStyleUsed({
+      mode,
+      assignedStyle,
+      overrideStyle
+    });
+
+    return res.json({
+      id: conversation.id,
+      botId: conversation.botId,
+      channel: conversation.channel,
+      externalUserId: conversation.externalUserId,
+      createdAt: conversation.createdAt,
+      lastMessageAt: conversation.lastMessageAt,
+      lastUserMessageAt,
+      mode: conversation.mode,
+      revenueAI: {
+        mode,
+        assignedStyle,
+        overrideStyle,
+        overrideExpiresAt: override?.expiresAt ?? null,
+        overrideScope: override?.sessionId
+          ? "SESSION"
+          : override?.conversationId
+          ? "CONVERSATION"
+          : null,
+        effectiveStyle
+      },
+      business: {
+        title: businessTitle,
+        subtitle: businessSubtitle
+      },
+      user: {
+        identifier: conversation.externalUserId, // IG/FB PSID, phone, web idâ€¦
+        displayName: userDisplayName            // IG username, FB name, etc.
+      }
+    });
+  }
+);
+
+
+/**
+ * POST /api/conversations/:id/mode
+ *
+ * Body: { mode: "AI" | "HUMAN" }
+ *
+ * Allows an agent to toggle between automatic AI replies and HUMAN handoff.
+ */
+router.post(
+  "/conversations/:id/mode",
+  requireAuth,
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { mode } = req.body as { mode?: "AI" | "HUMAN" };
+
+    if (mode !== "AI" && mode !== "HUMAN") {
+      return res.status(400).json({ error: "Invalid mode. Use 'AI' or 'HUMAN'." });
+    }
+
+    const conversation = await prisma.conversation.findFirst({
+      where: {
+        id
+      },
+      include: { bot: true }
+    });
+
+    if (!conversation) {
+      return res.status(404).json({ error: "Conversation not found" });
+    }
+    const canAccess = await userCanAccessBot(req.user!, conversation.botId);
+    if (!canAccess) {
+      return res.status(404).json({ error: "Conversation not found" });
+    }
+
+    if (conversation.mode === mode) {
+      return res.json({ ok: true, mode: conversation.mode });
+    }
+
+    const updated = await prisma.conversation.update({
+      where: { id },
+      data: {
+        mode: mode === "HUMAN" ? ConversationMode.HUMAN : ConversationMode.AI
+      }
+    });
+
+    // When switching into HUMAN mode manually, drop the localized handoff message
+    if (mode === "HUMAN") {
+      try {
+        const lastUserMessage = await prisma.message.findFirst({
+          where: { conversationId: conversation.id, role: MessageRole.USER },
+          orderBy: { createdAt: "desc" }
+        });
+        const handoffMessage = getHumanHandoffMessage(lastUserMessage?.content ?? "");
+
+        await logMessage({
+          conversationId: conversation.id,
+          role: MessageRole.ASSISTANT,
+          content: handoffMessage
+        });
+      } catch (err) {
+        console.error("Failed to log HUMAN handoff message", err);
+      }
+    }
+
+    // NEW: emit socket event so the mobile app (and web UI) can react
+    try {
+      const io = req.app.get("io") as SocketIOServer | undefined;
+
+      if (io) {
+        // last USER message timestamp for 24h rule in the mobile app
+        const lastUserMessage = await prisma.message.findFirst({
+          where: { conversationId: conversation.id, role: MessageRole.USER },
+          orderBy: { createdAt: "desc" }
+        });
+
+        const lastUserMessageAt = lastUserMessage?.createdAt ?? null;
+
+        io.to(`user:${conversation.bot.userId}`).emit("conversation:modeChanged", {
+          conversationId: conversation.id,
+          botId: conversation.botId,
+          mode: updated.mode,
+          channel: conversation.channel,
+          lastMessageAt: conversation.lastMessageAt,
+          lastUserMessageAt
+        });
+      }
+    } catch (err) {
+      console.error("Failed to emit conversation:modeChanged", err);
+    }
+
+    return res.json({ ok: true, mode: updated.mode });
+  }
+);
+
+/**
+ * POST /api/conversations/:id/revenue-ai-style
+ *
+ * Body: { style: "AUTO" | "SOFT" | "CLOSER", expiresInHours?: number }
+ */
+router.post(
+  "/conversations/:id/revenue-ai-style",
+  requireAuth,
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { style, expiresInHours } = req.body || {};
+
+    if (!style || !["AUTO", "SOFT", "CLOSER"].includes(style)) {
+      return res.status(400).json({ error: "Invalid style" });
+    }
+
+    const conversation = await prisma.conversation.findFirst({
+      where: { id },
+      include: { bot: true }
+    });
+
+    if (!conversation) {
+      return res.status(404).json({ error: "Conversation not found" });
+    }
+    const canAccess = await userCanAccessBot(req.user!, conversation.botId);
+    if (!canAccess) {
+      return res.status(404).json({ error: "Conversation not found" });
+    }
+
+    const isWeb = conversation.channel === "WEB";
+    if (!isWeb && expiresInHours) {
+      return res
+        .status(400)
+        .json({ error: "Expiration is only supported for web sessions" });
+    }
+    if (isWeb && expiresInHours && Number(expiresInHours) !== 24) {
+      return res
+        .status(400)
+        .json({ error: "Only 24h expiration is supported" });
+    }
+
+    const scope = isWeb ? "SESSION" : "CONVERSATION";
+    const sessionId = isWeb ? conversation.externalUserId : null;
+    const now = new Date();
+    const expiresAt =
+      isWeb && Number(expiresInHours) === 24
+        ? new Date(now.getTime() + 24 * 60 * 60 * 1000)
+        : null;
+
+    const existingOverride =
+      scope === "SESSION"
+        ? await prisma.revenueAIStyleOverride.findFirst({
+            where: { botId: conversation.botId, sessionId }
+          })
+        : await prisma.revenueAIStyleOverride.findFirst({
+            where: { botId: conversation.botId, conversationId: conversation.id }
+          });
+
+    if (style === "AUTO") {
+      if (scope === "SESSION") {
+        await prisma.revenueAIStyleOverride.deleteMany({
+          where: { botId: conversation.botId, sessionId }
+        });
+      } else {
+        await prisma.revenueAIStyleOverride.deleteMany({
+          where: { botId: conversation.botId, conversationId: conversation.id }
+        });
+        await prisma.revenueAISession.updateMany({
+          where: { conversationId: conversation.id },
+          data: { styleOverride: null }
+        });
+      }
+
+      await prisma.revenueAIStyleOverrideAudit.create({
+        data: {
+          botId: conversation.botId,
+          conversationId: scope === "CONVERSATION" ? conversation.id : null,
+          sessionId: scope === "SESSION" ? sessionId : null,
+          fromStyle: existingOverride?.styleOverride ?? null,
+          toStyle: null,
+          expiresAt: null,
+          createdByUserId: req.user!.id
+        }
+      });
+
+      return res.json({
+        ok: true,
+        style: "AUTO",
+        expiresAt: null,
+        scope
+      });
+    }
+
+    const overridePayload = {
+      botId: conversation.botId,
+      conversationId: scope === "CONVERSATION" ? conversation.id : null,
+      sessionId: scope === "SESSION" ? sessionId : null,
+      styleOverride: style,
+      expiresAt,
+      createdByUserId: req.user!.id
+    };
+
+    if (existingOverride) {
+      await prisma.revenueAIStyleOverride.update({
+        where: { id: existingOverride.id },
+        data: {
+          styleOverride: style,
+          expiresAt,
+          createdByUserId: req.user!.id
+        }
+      });
+    } else {
+      await prisma.revenueAIStyleOverride.create({
+        data: overridePayload
+      });
+    }
+
+    if (scope === "CONVERSATION") {
+      await prisma.revenueAISession.updateMany({
+        where: { conversationId: conversation.id },
+        data: { styleOverride: style }
+      });
+    }
+
+    await prisma.revenueAIStyleOverrideAudit.create({
+      data: {
+        botId: conversation.botId,
+        conversationId: scope === "CONVERSATION" ? conversation.id : null,
+        sessionId: scope === "SESSION" ? sessionId : null,
+        fromStyle: existingOverride?.styleOverride ?? null,
+        toStyle: style,
+        expiresAt,
+        createdByUserId: req.user!.id
+      }
+    });
+
+    return res.json({
+      ok: true,
+      style,
+      expiresAt,
+      scope
+    });
+  }
+);
+
+
+
+/**
+ * POST /api/conversations/:id/test-send
+ *
+ * Body: { text: string }
+ *
+ * Sends a manual test message to the external user for this conversation.
+ * Used mainly for Meta App verification.
+ */
+router.post(
+  "/conversations/:id/test-send",
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { text } = req.body as { text?: string };
+
+    const trimmed = (text || "").trim();
+    if (!trimmed) {
+      return res.status(400).json({ error: "Text is required" });
+    }
+
+    const conversation = await prisma.conversation.findFirst({
+      where: { id },
+      include: { bot: true }
+    });
+
+    if (!conversation) {
+      return res.status(404).json({ error: "Conversation not found" });
+    }
+    const canAccess = await userCanAccessBot(req.user!, conversation.botId);
+    if (!canAccess) {
+      return res.status(404).json({ error: "Conversation not found" });
+    }
+
+    try {
+      if (conversation.channel === "WHATSAPP") {
+        await sendWhatsappTextForConversation(
+          conversation.botId,
+          conversation.externalUserId,
+          trimmed
+        );
+      } else if (
+        conversation.channel === "FACEBOOK" ||
+        conversation.channel === "INSTAGRAM"
+      ) {
+        const channel = await prisma.botChannel.findFirst({
+          where: {
+            botId: conversation.botId,
+            type: conversation.channel
+          }
+        });
+
+        if (!channel) {
+          return res.status(400).json({
+            error: `No ${conversation.channel} channel configured for this bot.`
+          });
+        }
+
+        const meta = (channel.meta as any) || {};
+        let graphTargetId: string | undefined;
+
+        if (conversation.channel === "FACEBOOK") {
+          graphTargetId = meta.pageId || channel.externalId;
+        } else {
+          // For IG, replies go via PAGE ID when using FB login
+          graphTargetId = meta.pageId || channel.externalId;
+        }
+
+        if (!graphTargetId) {
+          return res.status(400).json({
+            error: "Missing graph target id for Meta channel."
+          });
+        }
+
+        const platform = conversation.channel === "FACEBOOK" ? "FB" : "IG";
+
+        const result = await sendGraphText(
+          "manual-test", // requestId for logs
+          platform,
+          channel.id,
+          graphTargetId,
+          conversation.externalUserId,
+          trimmed,
+          { botId: conversation.botId, conversationId: conversation.id }
+        );
+
+        if (!result.ok) {
+          console.error("Meta test send failed", result);
+          return res
+            .status(502)
+            .json({ error: "Failed to send message via Meta." });
+        }
+      } else if (conversation.channel === "WEB") {
+        // Nothing to actually "send"; we just log it into the conversation
+        // so it shows up in the UI.
+      }
+
+      // Always log the assistant message in the conversation history
+      await logMessage({
+        conversationId: conversation.id,
+        role: "ASSISTANT",
+        content: trimmed
+      });
+
+      return res.json({ ok: true });
+    } catch (err: any) {
+      console.error("Failed to send test message", err);
+      return res
+        .status(500)
+        .json({ error: "Failed to send test message. Check channel config and tokens." });
+    }
+  }
+);
+
+
+/**
+ * POST /api/conversations/:id/send
+ *
+ * Body: { text: string }
+ *
+ * Sends a manual HUMAN message to the external user for this conversation.
+ * Applies 24h reply window for WhatsApp / FB / IG.
+ */
+router.post(
+  "/conversations/:id/send",
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { text } = req.body as { text?: string };
+
+    const trimmed = (text || "").trim();
+    if (!trimmed) {
+      return res.status(400).json({ error: "Text is required" });
+    }
+
+    // 1) Load conversation + bot for ownership check
+    const conversation = await prisma.conversation.findFirst({
+      where: { id },
+      include: { bot: true }
+    });
+
+    if (!conversation) {
+      return res.status(404).json({ error: "Conversation not found" });
+    }
+    const canAccess = await userCanAccessBot(req.user!, conversation.botId);
+    if (!canAccess) {
+      return res.status(404).json({ error: "Conversation not found" });
+    }
+
+    // 2) Enforce 24h window for IG / FB / WhatsApp
+    if (
+      conversation.channel === "WHATSAPP" ||
+      conversation.channel === "FACEBOOK" ||
+      conversation.channel === "INSTAGRAM"
+    ) {
+      const lastUserMessage = await prisma.message.findFirst({
+        where: {
+          conversationId: id,
+          role: MessageRole.USER
+        },
+        orderBy: { createdAt: "desc" }
+      });
+
+      const now = new Date();
+      const threshold = new Date(now.getTime() - 24 * 60 * 60 * 1000); // 24h ago
+
+      const outsideWindow =
+        !lastUserMessage || lastUserMessage.createdAt < threshold;
+
+      if (outsideWindow) {
+        return res.status(400).json({
+          error:
+            "Cannot send manual message: the last user message is more than 24 hours old on this channel. To respect the Meta 24h policy, use an approved template or wait for the user to write again."
+        });
+      }
+    }
+
+    // 3) Same sending logic as test-send, but different requestId + HUMAN role
+    try {
+      if (conversation.channel === "WHATSAPP") {
+        await sendWhatsappTextForConversation(
+          conversation.botId,
+          conversation.externalUserId,
+          trimmed
+        );
+      } else if (
+        conversation.channel === "FACEBOOK" ||
+        conversation.channel === "INSTAGRAM"
+      ) {
+        const channel = await prisma.botChannel.findFirst({
+          where: {
+            botId: conversation.botId,
+            type: conversation.channel
+          }
+        });
+
+        if (!channel) {
+          return res.status(400).json({
+            error: `No ${conversation.channel} channel configured for this bot.`
+          });
+        }
+
+        const meta = (channel.meta as any) || {};
+        let graphTargetId: string | undefined;
+
+        if (conversation.channel === "FACEBOOK") {
+          graphTargetId = meta.pageId || channel.externalId;
+        } else {
+          // For IG, replies go via PAGE ID when using FB login
+          graphTargetId = meta.pageId || channel.externalId;
+        }
+
+        if (!graphTargetId) {
+          return res.status(400).json({
+            error: "Missing graph target id for Meta channel."
+          });
+        }
+
+        const platform = conversation.channel === "FACEBOOK" ? "FB" : "IG";
+
+        const result = await sendGraphText(
+          "manual-send", // requestId for logs (different from "manual-test")
+          platform,
+          channel.id,
+          graphTargetId,
+          conversation.externalUserId,
+          trimmed,
+          { botId: conversation.botId, conversationId: conversation.id }
+        );
+
+        if (!result.ok) {
+          console.error("Meta manual send failed", result);
+          return res
+            .status(502)
+            .json({ error: "Failed to send message via Meta." });
+        }
+      } else if (conversation.channel === "WEB") {
+        // For WEB we just log the message so it appears in the conversation.
+        // Delivery to the widget would be handled separately (e.g. WebSocket).
+      }
+
+      // 4) Log the HUMAN message in the conversation history
+      await logMessage({
+        conversationId: conversation.id,
+        role: "HUMAN",  // <--- key difference vs test-send
+        content: trimmed
+      });
+
+      return res.json({ ok: true });
+    } catch (err: any) {
+      console.error("Failed to send manual message", err);
+      return res.status(500).json({
+        error:
+          "Failed to send manual message. Check channel configuration and tokens."
+      });
+    }
+  }
+);
+
+
+/**
+ * POST /api/conversations/:id/eval
+ * Valuta una singola conversazione.
+ */
+router.post(
+  "/conversations/:id/eval",
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    // 1) Carica la conversazione + bot per verificare ownership
+    const conversation = await prisma.conversation.findFirst({
+      where: { id },
+      include: { bot: true }
+    });
+
+    if (!conversation) {
+      return res.status(404).json({ error: "Conversation not found" });
+    }
+    const canAccess = await userCanAccessBot(req.user!, conversation.botId);
+    if (!canAccess) {
+      return res.status(404).json({ error: "Conversation not found" });
+    }
+
+    try {
+      const result = await evaluateConversation(
+        conversation.bot.slug,
+        conversation.id,
+        false
+      );
+
+      return res.json(result);
+    } catch (err: any) {
+      console.error("Failed to evaluate conversation", err);
+      const message =
+        err?.message ||
+        "Failed to evaluate conversation. Please try again later.";
+      return res.status(500).json({ error: message });
+    }
+  }
+);
+
+/**
+ * POST /api/conversations/eval-bulk
+ *
+ * Body:
+ *  {
+ *    conversationIds: string[]
+ *  }
+ *
+ * Limite: max 20 conversazioni per richiesta.
+ */
+router.post(
+  "/conversations/eval-bulk",
+  async (req: Request, res: Response) => {
+    const { conversationIds } = req.body as {
+      conversationIds?: string[];
+    };
+
+    if (!Array.isArray(conversationIds) || conversationIds.length === 0) {
+      return res
+        .status(400)
+        .json({ error: "conversationIds must be a non-empty array." });
+    }
+
+    if (conversationIds.length > 20) {
+      return res
+        .status(400)
+        .json({ error: "Cannot evaluate more than 20 conversations at a time." });
+    }
+
+    // Carica tutte le conversazioni che appartengono all'utente
+    const conversations = await prisma.conversation.findMany({
+      where: {
+        id: { in: conversationIds },
+        bot: { userId: req.user!.id }
+      },
+      include: { bot: true }
+    });
+
+    const convById = new Map(
+      conversations.map((c) => [c.id, c])
+    );
+
+    type BulkItem = {
+      conversationId: string;
+      ok: boolean;
+      error?: string;
+      result?: ConversationEvalResult;
+    };
+
+    const results: BulkItem[] = [];
+
+    for (const convId of conversationIds) {
+      const conv = convById.get(convId);
+      if (!conv) {
+        results.push({
+          conversationId: convId,
+          ok: false,
+          error: "Conversation not found or not owned by current user."
+        });
+        continue;
+      }
+
+      try {
+        const result = await evaluateConversation(
+          conv.bot.slug,
+          conv.id,
+          false
+        );
+        results.push({
+          conversationId: convId,
+          ok: true,
+          result
+        });
+      } catch (err: any) {
+        console.error(
+          "Failed to evaluate conversation in bulk:",
+          convId,
+          err
+        );
+        results.push({
+          conversationId: convId,
+          ok: false,
+          error:
+            err?.message ||
+            "Failed to evaluate conversation. Please try again later."
+        });
+      }
+    }
+
+    // Risposta semplice: array di risultati
+    res.json({ items: results });
+  }
+);
+
+export default router;
+

@@ -1,0 +1,1608 @@
+// server.ts
+import express from 'express';
+import crypto from 'node:crypto';
+import path from 'node:path';
+import multer from 'multer';
+
+import { PlaywrightCrawler, RequestOptions } from '@crawlee/playwright';
+import { RequestQueue } from '@crawlee/core';
+import { loadConfig } from './config/index.js';
+import { Database } from './db/index.js';
+import { EmbeddingService } from './embeddings/index.js';
+import { searchClientContent } from './search/service.js';
+import { buildSearchHttpResponse } from './search/response.js';
+import { crawlDomain, normalizeDomainToStartUrl, extractDomain } from './crawler/index.js';
+import { fetchSitemapUrls } from './crawler/sitemaps.js';
+import { shouldSkipCrawlUrl } from './crawler/filters.js';
+
+import { extractTextFromBuffer } from './documents/extract.js';
+import { ingestTextForClient } from './ingestion/ingestText.js';
+import { chunkText } from './chunker/index.js';
+import { tokenize } from './tokenizer/index.js';
+import { buildSourceId } from './utils/sourceId.js';
+
+import { logger } from './logger.js';
+import {
+  buildEstimateSignature,
+  getCachedEstimateBySignature,
+  setCachedEstimate,
+  getCachedEstimateById,
+  deleteCachedEstimateById,
+  getEstimateJobStatus,
+  setEstimateJobStatus,
+  clearEstimateJobStatus,
+  type EstimateCacheMeta,
+  type EstimateJobStatusPayload,
+  type CachedPage,
+} from './cache/estimateCache.js';
+import type {
+  CrawlJobPublicView,
+  DocsEstimate,
+  CrawlEstimate,
+  CrawlJob,
+  KnowledgeJobType,
+} from './types.js';
+
+const app = express();
+app.use(express.json());
+
+
+const allowedMimeTypes = new Set([
+  'application/pdf',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'text/plain',
+]);
+
+const allowedExtensions = new Set(['.pdf', '.docx', '.txt']);
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 20 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    const ext = path.extname(file.originalname || '').toLowerCase();
+    const ok = allowedMimeTypes.has(file.mimetype) && allowedExtensions.has(ext);
+    if (!ok) {
+      return cb(new Error('Unsupported file type'));
+    }
+    return cb(null, true);
+  },
+});
+
+const INTERNAL_TOKEN = process.env.KNOWLEDGE_INTERNAL_TOKEN;
+
+function requireInternalAuth(
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction,
+) {
+  if (!INTERNAL_TOKEN) return next();
+  const token = req.header('X-Internal-Token');
+  if (!token || token !== INTERNAL_TOKEN) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  return next();
+}
+
+const config = loadConfig();
+const db = new Database(config.db);
+const embeddings = new EmbeddingService(config.embeddings);
+
+const estimateJobs = new Map<string, EstimateJobStatusPayload>();
+
+async function setEstimateJobStatusSafe(payload: EstimateJobStatusPayload) {
+  estimateJobs.set(payload.estimateId, payload);
+  await setEstimateJobStatus(payload, config);
+
+  const ttlMs = Math.max(60, config.cache.estimateTtlSeconds) * 1000;
+  setTimeout(() => {
+    estimateJobs.delete(payload.estimateId);
+  }, ttlMs).unref();
+}
+
+async function getEstimateJobStatusSafe(
+  estimateId: string,
+): Promise<EstimateJobStatusPayload | null> {
+  const fromCache = await getEstimateJobStatus(estimateId, config);
+  if (fromCache) return fromCache;
+  return estimateJobs.get(estimateId) ?? null;
+}
+
+db.init()
+  .then(() => logger.info('DB initialized'))
+  .catch((err) => {
+    logger.error('Failed to init DB', err);
+    process.exit(1);
+  });
+
+app.use((req, _res, next) => {
+  logger.info('[KB]', req.method, req.url);
+  next();
+});
+
+function clampErrorMessage(msg: string, max = 2000): string {
+  const s = String(msg || '');
+  return s.length > max ? s.slice(0, max) : s;
+}
+
+function safeDecodeURIComponent(s: string): string {
+  try {
+    return decodeURIComponent(s);
+  } catch {
+    return s;
+  }
+}
+
+/**
+ * Domain used for storage/grouping. Not the user's "origin".
+ * - If domain provided => normalize to host
+ * - Else if client.mainDomain => normalize to host
+ * - Else => "uploaded-docs"
+ */
+function resolveDocsNamespaceDomain(inputDomain: string | undefined, fallbackMainDomain: string | null | undefined) {
+  const raw = (inputDomain || fallbackMainDomain || 'uploaded-docs').trim();
+  if (!raw || raw === 'uploaded-docs') return 'uploaded-docs';
+  try {
+    return extractDomain(raw);
+  } catch {
+    return raw;
+  }
+}
+
+function inferJobType(startUrl: string): KnowledgeJobType {
+  // Domain crawls are typically http/https start urls.
+  // Docs are stored as file://local/<filename>
+  if (startUrl.startsWith('file://')) return 'docs';
+  return 'domain';
+}
+
+function inferFilenameFromStartUrl(startUrl: string): string | null {
+  try {
+    const u = new URL(startUrl);
+    const parts = (u.pathname || '').split('/').filter(Boolean);
+    const last = parts[parts.length - 1];
+    return last ? safeDecodeURIComponent(last) : null;
+  } catch {
+    const clean = startUrl.split('#')[0].split('?')[0];
+    const parts = clean.split('/').filter(Boolean);
+    const last = parts[parts.length - 1];
+    return last ? safeDecodeURIComponent(last) : null;
+  }
+}
+
+async function jobToPublic(job: CrawlJob): Promise<CrawlJobPublicView> {
+  const total = job.totalPagesEstimated ?? null;
+  const percent =
+    total && total > 0
+      ? Math.max(0, Math.min(100, Math.floor((job.pagesVisited / total) * 100)))
+      : null;
+
+  const jobType = inferJobType(job.startUrl);
+
+  const origin =
+    jobType === 'domain'
+      ? job.domain
+      : inferFilenameFromStartUrl(job.startUrl) || 'Uploaded document';
+
+  let tokensUsed: number | null = null;
+  if (job.startedAt) {
+    const to = job.finishedAt ?? new Date();
+    tokensUsed = await db.sumClientTokensUsedBetween({
+      clientId: job.clientId,
+      from: job.startedAt,
+      to,
+    });
+  }
+
+  return {
+    id: job.id,
+    clientId: job.clientId,
+    status: job.status,
+    isActive: job.isActive ?? true,
+
+    jobType,
+    origin,
+
+    domain: job.domain,
+    startUrl: job.startUrl,
+
+    pagesVisited: job.pagesVisited,
+    pagesStored: job.pagesStored,
+    chunksStored: job.chunksStored,
+    totalPagesEstimated: job.totalPagesEstimated,
+    percent,
+    errorMessage: job.errorMessage,
+    tokensUsed,
+    createdAt: job.createdAt.toISOString(),
+    startedAt: job.startedAt ? job.startedAt.toISOString() : null,
+    finishedAt: job.finishedAt ? job.finishedAt.toISOString() : null,
+    updatedAt: job.updatedAt.toISOString(),
+  };
+}
+
+function normalizeUrlForEstimate(raw: string): string | null {
+  try {
+    const u = new URL(raw);
+
+    u.hash = '';
+
+    const dropPrefixes = ['utm_'];
+    const dropExact = new Set([
+      'gclid',
+      'fbclid',
+      'igshid',
+      'mc_cid',
+      'mc_eid',
+      'ref',
+      'ref_src',
+      'mkt_tok',
+    ]);
+
+    const kept: [string, string][] = [];
+    for (const [k, v] of u.searchParams.entries()) {
+      const lower = k.toLowerCase();
+      if (dropExact.has(lower)) continue;
+      if (dropPrefixes.some((p) => lower.startsWith(p))) continue;
+      kept.push([k, v]);
+    }
+
+    u.search = '';
+    kept
+      .sort((a, b) => (a[0] === b[0] ? a[1].localeCompare(b[1]) : a[0].localeCompare(b[0])))
+      .forEach(([k, v]) => u.searchParams.append(k, v));
+
+    if (u.pathname.length > 1 && u.pathname.endsWith('/')) {
+      u.pathname = u.pathname.slice(0, -1);
+    }
+
+    return u.toString();
+  } catch {
+    return null;
+  }
+}
+
+async function estimateDomainTokensWithBrowser(params: {
+  startUrl: string;
+  host: string;
+  sitemapUrls: string[];
+}): Promise<{
+  pagesEstimated: number;
+  pagesVisited: number;
+  pagesCounted: number;
+  totalTokens: number;
+  pages: CachedPage[];
+}> {
+  const { startUrl, host, sitemapUrls } = params;
+
+  const discoveredUrls = new Set<string>();
+  const addDiscovered = (rawUrl: string): boolean => {
+    const norm = normalizeUrlForEstimate(rawUrl);
+    if (!norm) return false;
+    if (discoveredUrls.has(norm)) return false;
+    discoveredUrls.add(norm);
+    return true;
+  };
+
+  const filteredSitemapUrls = sitemapUrls.filter((u) => !shouldSkipCrawlUrl(u));
+  const seedUrls = filteredSitemapUrls.length > 0 ? [startUrl, ...filteredSitemapUrls] : [startUrl];
+  const startRequests = seedUrls.map((url) => ({ url, userData: { depth: 0 } }));
+  const filteredStartRequests = startRequests.filter((r) => !shouldSkipCrawlUrl(r.url));
+  if (filteredStartRequests.length !== startRequests.length) {
+    logger.info(
+      `Estimate skipping ${startRequests.length - filteredStartRequests.length} non-HTML start requests.`,
+    );
+  }
+  for (const r of filteredStartRequests) addDiscovered(r.url);
+
+  let pagesVisited = 0;
+  let pagesCounted = 0;
+  let totalTokens = 0;
+  const pages: CachedPage[] = [];
+
+  const requestQueue = await RequestQueue.open(`estimate-${crypto.randomUUID()}`);
+
+  const crawler = new PlaywrightCrawler({
+    maxRequestsPerCrawl: config.crawl.maxPages,
+    maxConcurrency: config.crawl.concurrency,
+    respectRobotsTxtFile: config.crawl.respectRobotsTxt,
+    useSessionPool: true,
+    requestQueue,
+
+    async requestHandler({ request, page, enqueueLinks, log }) {
+      const depth: number = (request.userData.depth as number) ?? 0;
+      if (depth > config.crawl.maxDepth) {
+        log.info(`Skipping ${request.url}, depth ${depth} > ${config.crawl.maxDepth}`);
+        return;
+      }
+
+      try {
+        if (config.crawl.contentWaitSelector) {
+          await page.waitForSelector(config.crawl.contentWaitSelector, { timeout: 15000 });
+        } else {
+          await page.waitForLoadState('networkidle', { timeout: 15000 });
+        }
+      } catch {
+        log.warning(`Timeout waiting for page to load: ${request.url}`);
+      }
+
+      let html: string;
+      try {
+        html = await page.content();
+      } catch (err) {
+        log.error(`Failed to get page content for ${request.url}`, { err });
+        return;
+      }
+
+      pagesVisited += 1;
+
+      const parsed = (await import('./parser/index.js')).parseHtmlToText(
+        html,
+        request.url,
+        host,
+      );
+      if (parsed.cleanedText && parsed.cleanedText.length >= config.crawl.minChars) {
+        const chunks = chunkText(parsed.cleanedText, request.url, host, config.chunking, null);
+        for (const c of chunks) totalTokens += tokenize(c.text).length;
+        pagesCounted += 1;
+        pages.push({
+          url: parsed.url,
+          domain: parsed.domain,
+          cleanedText: parsed.cleanedText,
+          title: parsed.title,
+        });
+      }
+
+      if (depth < config.crawl.maxDepth) {
+        await enqueueLinks({
+          strategy: 'same-domain',
+          transformRequestFunction: (reqOpts: RequestOptions) => {
+            try {
+              const u = new URL(reqOpts.url);
+              if (u.hostname !== host) return null;
+              if (shouldSkipCrawlUrl(u.toString())) return null;
+
+              const norm = normalizeUrlForEstimate(u.toString());
+              if (!norm) return null;
+
+              if (discoveredUrls.size >= config.crawl.maxPages) return null;
+
+              const added = addDiscovered(norm);
+              if (!added) return null;
+
+              reqOpts.userData = { ...(reqOpts.userData || {}), depth: depth + 1 };
+              reqOpts.url = norm;
+              return reqOpts;
+            } catch {
+              return null;
+            }
+          },
+        });
+      }
+    },
+  });
+
+  await crawler.run(filteredStartRequests);
+
+  const pagesEstimated = Math.min(config.crawl.maxPages, discoveredUrls.size);
+
+  return { pagesEstimated, pagesVisited, pagesCounted, totalTokens, pages };
+}
+
+async function ingestCachedPages(params: {
+  pages: CachedPage[];
+  client: NonNullable<Awaited<ReturnType<typeof db.getClientById>>>;
+  deps: { config: typeof config; db: typeof db; embeddings: typeof embeddings };
+  job?: {
+    id: string;
+    onTotalsKnown?: (totalPagesEstimated: number | null) => Promise<void>;
+    onProgress?: (p: {
+      pagesVisited: number;
+      pagesStored: number;
+      chunksStored: number;
+    }) => Promise<void>;
+  };
+}): Promise<{ pagesVisited: number; pagesStored: number; chunksStored: number }> {
+  const { pages, client, deps, job } = params;
+  const { config, db, embeddings } = deps;
+
+  let pagesVisited = 0;
+  let pagesStored = 0;
+  let chunksStored = 0;
+
+  if (job?.onTotalsKnown) {
+    await job.onTotalsKnown(pages.length);
+  }
+
+  for (const page of pages) {
+    pagesVisited += 1;
+
+    if (!page.cleanedText || page.cleanedText.length < config.crawl.minChars) {
+      continue;
+    }
+
+    try {
+      const { chunksCreated, chunksStored: storedNow } = await ingestTextForClient({
+        text: page.cleanedText,
+        url: page.url,
+        domain: page.domain,
+        sourceId: buildSourceId({
+          clientId: client.id,
+          jobId: job?.id ?? null,
+          url: page.url,
+        }),
+        client,
+        deps: { config, db, embeddings },
+      });
+
+      if (chunksCreated > 0) {
+        pagesStored += 1;
+        chunksStored += storedNow;
+      }
+    } catch (err) {
+      logger.error(`Ingestion failed for cached URL ${page.url}`, { err });
+    }
+
+    if (job?.onProgress) {
+      await job.onProgress({ pagesVisited, pagesStored, chunksStored });
+    }
+  }
+
+  return { pagesVisited, pagesStored, chunksStored };
+}
+
+function buildEstimateFromCache(meta: EstimateCacheMeta): CrawlEstimate {
+  return {
+    domain: meta.domain,
+    pagesEstimated: meta.pagesEstimated,
+    samplePages: meta.pagesCounted,
+    avgEmbeddingTokensPerPage:
+      meta.pagesCounted > 0 ? Math.round(meta.tokensEstimated / meta.pagesCounted) : 0,
+    tokensEstimated: meta.tokensEstimated,
+    tokensLow: meta.tokensEstimated,
+    tokensHigh: meta.tokensEstimated,
+  };
+}
+
+// --- Clients ---
+app.post('/clients', requireInternalAuth, async (req, res) => {
+  try {
+    const { name, embeddingModel, mainDomain } = req.body as {
+      name?: string;
+      embeddingModel?: string;
+      mainDomain?: string;
+    };
+
+    if (!name) return res.status(400).json({ error: 'name is required' });
+
+    const model =
+      embeddingModel === 'text-embedding-3-large'
+        ? 'text-embedding-3-large'
+        : 'text-embedding-3-small';
+
+    try {
+      const client = await db.createClient({
+        name,
+        embeddingModel: model,
+        mainDomain: mainDomain || null,
+      });
+      return res.status(201).json({ client, created: true });
+    } catch (err: any) {
+      if (err?.code === 'DUPLICATE_CLIENT_NAME') {
+        return res.status(409).json({ error: 'client name already exists' });
+      }
+      if (err?.code === 'DUPLICATE_MAIN_DOMAIN') {
+        return res.status(409).json({ error: 'mainDomain already exists for another client' });
+      }
+      throw err;
+    }
+  } catch (err) {
+    logger.error('Error in /clients', err);
+    return res.status(500).json({ error: 'Internal error' });
+  }
+});
+
+app.delete('/clients/:id', requireInternalAuth, async (req, res) => {
+  try {
+    const clientId = req.params.id;
+    const existing = await db.getClientById(clientId);
+    if (!existing) return res.status(404).json({ error: 'Client not found' });
+    await db.deleteClientById(clientId);
+    return res.status(204).send();
+  } catch (err) {
+    logger.error('Error in DELETE /clients/:id', err);
+    return res.status(500).json({ error: 'Internal error' });
+  }
+});
+
+// --- Crawl: create job + run async ---
+app.post('/crawl', requireInternalAuth, async (req, res) => {
+  try {
+    const { clientId, domain, estimateId } = req.body as {
+      clientId?: string;
+      domain?: string;
+      estimateId?: string;
+    };
+
+    if (!clientId || !domain) {
+      return res.status(400).json({ error: 'clientId and domain are required' });
+    }
+
+    const client = await db.getClientById(clientId);
+    if (!client) return res.status(404).json({ error: 'Client not found' });
+
+    const startUrl = normalizeDomainToStartUrl(domain);
+    const host = extractDomain(domain);
+    const signature = buildEstimateSignature(host, config);
+    const cached = estimateId ? await getCachedEstimateById(estimateId, config) : null;
+    const cacheUsable =
+      cached && cached.meta.domain === host && cached.meta.signature === signature;
+    if (estimateId && !cacheUsable) {
+      logger.warn(
+        `[KB] Estimate cache miss or mismatch for estimateId=${estimateId} domain=${host}`,
+      );
+    }
+
+    const job = await db.createCrawlJob({
+      clientId,
+      domain: domain,
+      startUrl,
+      totalPagesEstimated: cacheUsable ? cached.meta.pagesEstimated : null,
+    });
+
+    (async () => {
+      try {
+        await db.markCrawlJobRunning(job.id);
+
+        const jobHooks = {
+          id: job.id,
+          onTotalsKnown: async (totalPagesEstimated: number | null) => {
+            await db.updateCrawlJobTotals(job.id, totalPagesEstimated ?? null);
+          },
+          onProgress: async ({
+            pagesVisited,
+            pagesStored,
+            chunksStored,
+          }: {
+            pagesVisited: number;
+            pagesStored: number;
+            chunksStored: number;
+          }) => {
+            await db.updateCrawlJobProgress({
+              jobId: job.id,
+              pagesVisited,
+              pagesStored,
+              chunksStored,
+            });
+          },
+        };
+
+        if (cacheUsable && cached) {
+          logger.info(
+            `[KB] Using cached estimate ${cached.meta.estimateId} for domain=${host}`,
+          );
+          await ingestCachedPages({
+            pages: cached.pages,
+            client,
+            deps: { config, db, embeddings },
+            job: jobHooks,
+          });
+          await deleteCachedEstimateById(cached.meta.estimateId, config, cached.meta.signature);
+        } else {
+          await crawlDomain(domain, client, {
+            config,
+            db,
+            embeddings,
+            job: jobHooks,
+          });
+        }
+
+        await db.markCrawlJobCompleted(job.id);
+        logger.info(`[KB] Crawl completed job=${job.id} client=${clientId} domain=${domain}`);
+      } catch (err: any) {
+        logger.error(`[KB] Crawl failed job=${job.id}`, err);
+        await db.markCrawlJobFailed(job.id, clampErrorMessage(err?.message || 'Crawl failed'));
+      }
+    })().catch((e) => logger.error('Unexpected crawl wrapper failure', e));
+
+    return res.status(202).json({
+      status: 'queued',
+      jobId: job.id,
+      clientId,
+      domain: host,
+    });
+  } catch (err) {
+    logger.error('Error in /crawl', err);
+    return res.status(500).json({ error: 'Internal error' });
+  }
+});
+
+// --- Crawl job status (single) ---
+app.get('/crawl/jobs/:jobId', requireInternalAuth, async (req, res) => {
+  try {
+    const jobId = req.params.jobId;
+    const job = await db.getCrawlJobById(jobId);
+    if (!job) return res.status(404).json({ error: 'Job not found' });
+    return res.json({ job: await jobToPublic(job) });
+  } catch (err) {
+    logger.error('Error in GET /crawl/jobs/:jobId', err);
+    return res.status(500).json({ error: 'Internal error' });
+  }
+});
+
+// --- Paginated history ---
+app.get('/crawl/jobs', requireInternalAuth, async (req, res) => {
+  try {
+    const clientId = String(req.query.clientId || '').trim();
+    if (!clientId) return res.status(400).json({ error: 'clientId is required' });
+
+    const page = Math.max(1, Number(req.query.page || 1));
+    const pageSize = Math.max(1, Math.min(50, Number(req.query.pageSize || 10)));
+
+    const { items, totalItems } = await db.listCrawlJobsByClientIdPaged({
+      clientId,
+      page,
+      pageSize,
+    });
+
+    const jobs: CrawlJobPublicView[] = [];
+    for (const j of items) jobs.push(await jobToPublic(j));
+
+    const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+
+    return res.json({
+      page,
+      pageSize,
+      totalItems,
+      totalPages,
+      jobs,
+    });
+  } catch (err) {
+    logger.error('Error in GET /crawl/jobs (paginated)', err);
+    return res.status(500).json({ error: 'Internal error' });
+  }
+});
+
+// --- Estimates ---
+app.post('/estimate/crawl/async', requireInternalAuth, async (req, res) => {
+  try {
+    const { domain } = req.body as { domain?: string };
+    if (!domain) return res.status(400).json({ error: 'domain is required' });
+
+    const startUrl = normalizeDomainToStartUrl(domain);
+    const host = extractDomain(domain);
+    const signature = buildEstimateSignature(host, config);
+
+    const cached = await getCachedEstimateBySignature(signature, config);
+    if (cached) {
+      const estimate = buildEstimateFromCache(cached.meta);
+      logger.info(
+        `Estimate cache hit for domain=${host} estimateId=${cached.meta.estimateId}`,
+      );
+      return res.json({
+        status: 'completed',
+        estimate,
+        estimateId: cached.meta.estimateId,
+        cached: true,
+      });
+    }
+
+    const estimateId = crypto.randomUUID();
+    await setEstimateJobStatusSafe({
+      estimateId,
+      status: 'running',
+      domain: host,
+      createdAt: new Date().toISOString(),
+    });
+
+    (async () => {
+      try {
+        const urls = await fetchSitemapUrls(startUrl, host, config.crawl.enableSitemap);
+        const { pagesEstimated, pagesVisited, pagesCounted, totalTokens, pages } =
+          await estimateDomainTokensWithBrowser({
+            startUrl,
+            host,
+            sitemapUrls: urls,
+          });
+
+        logger.info(
+          `Estimate summary for domain=${host}: pagesEstimated=${pagesEstimated}, pagesVisited=${pagesVisited}, pagesCounted=${pagesCounted}, tokens=${totalTokens}`,
+        );
+
+        const estimate: CrawlEstimate = {
+          domain: host,
+          pagesEstimated,
+          samplePages: pagesCounted,
+          avgEmbeddingTokensPerPage:
+            pagesCounted > 0 ? Math.round(totalTokens / pagesCounted) : 0,
+          tokensEstimated: totalTokens,
+          tokensLow: totalTokens,
+          tokensHigh: totalTokens,
+        };
+
+        await setCachedEstimate(
+          {
+            meta: {
+              estimateId,
+              signature,
+              domain: host,
+              startUrl,
+              createdAt: new Date().toISOString(),
+              pagesEstimated,
+              pagesVisited,
+              pagesCounted,
+              tokensEstimated: totalTokens,
+              schemaVersion: 1,
+            },
+            pages,
+          },
+          config,
+        );
+
+        await setEstimateJobStatusSafe({
+          estimateId,
+          status: 'completed',
+          domain: host,
+          createdAt: new Date().toISOString(),
+        });
+
+        logger.info(
+          `Estimate cache stored for domain=${host} estimateId=${estimateId} pagesCounted=${pagesCounted}`,
+        );
+      } catch (err: any) {
+        logger.error('Error in async estimate crawl', err);
+        await setEstimateJobStatusSafe({
+          estimateId,
+          status: 'failed',
+          domain: host,
+          createdAt: new Date().toISOString(),
+          error: clampErrorMessage(err?.message || 'Estimate failed'),
+        });
+      }
+    })().catch((e) => logger.error('Unexpected async estimate failure', e));
+
+    return res.status(202).json({ status: 'running', estimateId, domain: host });
+  } catch (err) {
+    logger.error('Error in POST /estimate/crawl/async', err);
+    return res.status(500).json({ error: 'Internal error' });
+  }
+});
+
+app.get('/estimate/crawl/status', requireInternalAuth, async (req, res) => {
+  try {
+    const estimateId = String(req.query.estimateId || '').trim();
+    if (!estimateId) return res.status(400).json({ error: 'estimateId is required' });
+
+    const status = await getEstimateJobStatusSafe(estimateId);
+
+    if (!status) {
+      const cached = await getCachedEstimateById(estimateId, config);
+      if (!cached) return res.status(404).json({ error: 'Estimate not found' });
+      return res.json({
+        status: 'completed',
+        estimateId,
+        estimate: buildEstimateFromCache(cached.meta),
+      });
+    }
+
+    if (status.status === 'running') {
+      return res.json({ status: 'running', estimateId });
+    }
+
+    if (status.status === 'failed') {
+      return res.json({ status: 'failed', estimateId, error: status.error });
+    }
+
+    const cached = await getCachedEstimateById(estimateId, config);
+    if (!cached) {
+      return res.json({ status: 'running', estimateId });
+    }
+
+    await clearEstimateJobStatus(estimateId, config);
+    return res.json({
+      status: 'completed',
+      estimateId,
+      estimate: buildEstimateFromCache(cached.meta),
+    });
+  } catch (err) {
+    logger.error('Error in GET /estimate/crawl/status', err);
+    return res.status(500).json({ error: 'Internal error' });
+  }
+});
+
+app.post('/estimate/crawl', requireInternalAuth, async (req, res) => {
+  try {
+    const { domain } = req.body as { domain?: string };
+    if (!domain) return res.status(400).json({ error: 'domain is required' });
+
+    const startUrl = normalizeDomainToStartUrl(domain);
+    const host = extractDomain(domain);
+    const signature = buildEstimateSignature(host, config);
+
+    const cached = await getCachedEstimateBySignature(signature, config);
+    if (cached) {
+      const estimate: CrawlEstimate = {
+        domain: cached.meta.domain,
+        pagesEstimated: cached.meta.pagesEstimated,
+        samplePages: cached.meta.pagesCounted,
+        avgEmbeddingTokensPerPage:
+          cached.meta.pagesCounted > 0
+            ? Math.round(cached.meta.tokensEstimated / cached.meta.pagesCounted)
+            : 0,
+        tokensEstimated: cached.meta.tokensEstimated,
+        tokensLow: cached.meta.tokensEstimated,
+        tokensHigh: cached.meta.tokensEstimated,
+      };
+
+      logger.info(
+        `Estimate cache hit for domain=${host} estimateId=${cached.meta.estimateId}`,
+      );
+      return res.json({ estimate, estimateId: cached.meta.estimateId, cached: true });
+    }
+
+    const urls = await fetchSitemapUrls(startUrl, host, config.crawl.enableSitemap);
+
+    const { pagesEstimated, pagesVisited, pagesCounted, totalTokens, pages } =
+      await estimateDomainTokensWithBrowser({
+        startUrl,
+        host,
+        sitemapUrls: urls,
+      });
+    logger.info(
+      `Estimate summary for domain=${host}: pagesEstimated=${pagesEstimated}, pagesVisited=${pagesVisited}, pagesCounted=${pagesCounted}, tokens=${totalTokens}`,
+    );
+
+    const avgEmbeddingTokensPerPage =
+      pagesCounted > 0 ? Math.round(totalTokens / pagesCounted) : 0;
+    const tokensEstimated = totalTokens;
+
+    const estimate: CrawlEstimate = {
+      domain: host,
+      pagesEstimated,
+      samplePages: pagesCounted,
+      avgEmbeddingTokensPerPage,
+      tokensEstimated,
+      tokensLow: tokensEstimated,
+      tokensHigh: tokensEstimated,
+    };
+    const estimateId = crypto.randomUUID();
+    await setCachedEstimate(
+      {
+        meta: {
+          estimateId,
+          signature,
+          domain: host,
+          startUrl,
+          createdAt: new Date().toISOString(),
+          pagesEstimated,
+          pagesVisited,
+          pagesCounted,
+          tokensEstimated,
+          schemaVersion: 1,
+        },
+        pages,
+      },
+      config,
+    );
+
+    logger.info(
+      `Estimate cache stored for domain=${host} estimateId=${estimateId} pagesCounted=${pagesCounted}`,
+    );
+
+    return res.json({ estimate, estimateId });
+  } catch (err) {
+    logger.error('Error in POST /estimate/crawl', err);
+    return res.status(500).json({ error: 'Internal error' });
+  }
+});
+
+app.post('/estimate/docs', requireInternalAuth, upload.array('files', 10), async (req, res) => {
+  try {
+    const { clientId, domain } = req.body as { clientId?: string; domain?: string };
+    if (!clientId) return res.status(400).json({ error: 'clientId is required' });
+
+    const client = await db.getClientById(clientId);
+    if (!client) return res.status(404).json({ error: 'Client not found' });
+
+    const files = req.files as Express.Multer.File[] | undefined;
+    if (!files || files.length === 0) {
+      return res.status(400).json({ error: 'files are required' });
+    }
+
+    const namespaceDomain = resolveDocsNamespaceDomain(domain, client.mainDomain);
+
+    let totalTokensEstimated = 0;
+    const outFiles: DocsEstimate['files'] = [];
+
+    for (const f of files) {
+      let rawText = '';
+      try {
+        rawText = await extractTextFromBuffer(f.buffer, f.originalname);
+      } catch (e: any) {
+        outFiles.push({
+          fileName: f.originalname,
+          chars: 0,
+          chunks: 0,
+          tokensEstimated: 0,
+          skipped: true,
+          reason: `Unsupported or unreadable file: ${e?.message || 'error'}`,
+        });
+        continue;
+      }
+
+      const cleaned = rawText
+        .replace(/\r\n/g, '\n')
+        .replace(/\n{3,}/g, '\n\n')
+        .replace(/[ \t]+/g, ' ')
+        .replace(/\n[ \t]+/g, '\n')
+        .trim();
+
+      if (!cleaned || cleaned.length < config.crawl.minChars) {
+        outFiles.push({
+          fileName: f.originalname,
+          chars: cleaned.length,
+          chunks: 0,
+          tokensEstimated: 0,
+          skipped: true,
+          reason: `Text too short (${cleaned.length} chars, min=${config.crawl.minChars})`,
+        });
+        continue;
+      }
+
+      const fakeUrl = `file://local/${encodeURIComponent(f.originalname)}`;
+      const chunks = chunkText(cleaned, fakeUrl, namespaceDomain, config.chunking, null);
+
+      let fileTokens = 0;
+      for (const c of chunks) fileTokens += tokenize(c.text).length;
+
+      totalTokensEstimated += fileTokens;
+
+      outFiles.push({
+        fileName: f.originalname,
+        chars: cleaned.length,
+        chunks: chunks.length,
+        tokensEstimated: fileTokens,
+      });
+    }
+
+    const estimate: DocsEstimate = {
+      totalTokensEstimated,
+      files: outFiles,
+    };
+
+    return res.json({ estimate });
+  } catch (err) {
+    logger.error('Error in POST /estimate/docs', err);
+    return res.status(500).json({ error: 'Internal error' });
+  }
+});
+
+// --- Ingest docs (canonical): /ingest-docs ---
+// Creates a crawl_jobs row PER FILE so the table can show filename correctly.
+app.post('/ingest-docs', requireInternalAuth, upload.array('files', 10), async (req, res) => {
+  try {
+    const { clientId, domain } = req.body as { clientId?: string; domain?: string };
+    if (!clientId) return res.status(400).json({ error: 'clientId is required' });
+
+    const client = await db.getClientById(clientId);
+    if (!client) return res.status(404).json({ error: 'Client not found' });
+
+    const files = req.files as Express.Multer.File[] | undefined;
+    if (!files || files.length === 0) {
+      return res.status(400).json({ error: 'files are required' });
+    }
+
+    const namespaceDomain = resolveDocsNamespaceDomain(domain, client.mainDomain);
+
+    const results: any[] = [];
+
+    for (const file of files) {
+      const startUrl = `file://local/${encodeURIComponent(file.originalname)}`;
+
+      const job = await db.createCrawlJob({
+        clientId,
+        domain: namespaceDomain,
+        startUrl,
+        totalPagesEstimated: 1,
+      });
+
+      try {
+        await db.markCrawlJobRunning(job.id);
+
+        let rawText: string;
+        try {
+          rawText = await extractTextFromBuffer(file.buffer, file.originalname);
+        } catch (err: any) {
+          await db.updateCrawlJobProgress({
+            jobId: job.id,
+            pagesVisited: 1,
+            pagesStored: 0,
+            chunksStored: 0,
+          });
+          await db.markCrawlJobFailed(
+            job.id,
+            clampErrorMessage(`Could not extract text: ${err?.message || 'unknown error'}`),
+          );
+          results.push({
+            fileName: file.originalname,
+            status: 'skipped',
+            reason: `Could not extract text: ${err?.message || 'unknown error'}`,
+            jobId: job.id,
+          });
+          continue;
+        }
+
+        const cleanedText = rawText
+          .replace(/\r\n/g, '\n')
+          .replace(/\n{3,}/g, '\n\n')
+          .replace(/[ \t]+/g, ' ')
+          .replace(/\n[ \t]+/g, '\n')
+          .trim();
+
+        if (!cleanedText || cleanedText.length < config.crawl.minChars) {
+          await db.updateCrawlJobProgress({
+            jobId: job.id,
+            pagesVisited: 1,
+            pagesStored: 0,
+            chunksStored: 0,
+          });
+          await db.markCrawlJobCompleted(job.id);
+
+          results.push({
+            fileName: file.originalname,
+            status: 'skipped',
+            reason: `Document text too short (${cleanedText.length} chars, min=${config.crawl.minChars})`,
+            jobId: job.id,
+          });
+          continue;
+        }
+
+      const { chunksCreated, chunksStored } = await ingestTextForClient({
+        text: cleanedText,
+        url: startUrl,
+        domain: namespaceDomain,
+        sourceId: buildSourceId({
+          clientId: client.id,
+          jobId: job.id,
+          url: startUrl,
+        }),
+        client,
+        deps: { config, db, embeddings },
+      });
+
+        await db.updateCrawlJobProgress({
+          jobId: job.id,
+          pagesVisited: 1,
+          pagesStored: chunksCreated > 0 ? 1 : 0,
+          chunksStored: Number(chunksStored ?? 0),
+        });
+
+        await db.markCrawlJobCompleted(job.id);
+
+        results.push({
+          fileName: file.originalname,
+          status: chunksCreated === 0 ? 'skipped' : 'ok',
+          chunksCreated,
+          chunksStored,
+          jobId: job.id,
+        });
+      } catch (err: any) {
+        logger.error('Error ingesting doc', err);
+        await db.markCrawlJobFailed(job.id, clampErrorMessage(err?.message || 'Doc ingest failed'));
+        results.push({
+          fileName: file.originalname,
+          status: 'failed',
+          reason: err?.message || 'Doc ingest failed',
+          jobId: job.id,
+        });
+      }
+    }
+
+    return res.status(200).json({
+      status: 'ok',
+      namespaceDomain,
+      results,
+    });
+  } catch (err) {
+    logger.error('Error in /ingest-docs', err);
+    return res.status(500).json({ error: 'Internal error' });
+  }
+});
+
+// --- Backward compatible single-file endpoint: /upload-document ---
+app.post('/upload-document', requireInternalAuth, upload.single('file'), async (req, res) => {
+  try {
+    const { clientId, domain } = req.body as { clientId?: string; domain?: string };
+    if (!clientId) return res.status(400).json({ error: 'clientId is required' });
+
+    const file = req.file;
+    if (!file) return res.status(400).json({ error: 'file is required' });
+
+    const client = await db.getClientById(clientId);
+    if (!client) return res.status(404).json({ error: 'Client not found' });
+
+    const namespaceDomain = resolveDocsNamespaceDomain(domain, client.mainDomain);
+    const startUrl = `file://local/${encodeURIComponent(file.originalname)}`;
+
+    const job = await db.createCrawlJob({
+      clientId,
+      domain: namespaceDomain,
+      startUrl,
+      totalPagesEstimated: 1,
+    });
+
+    await db.markCrawlJobRunning(job.id);
+
+    let rawText: string;
+    try {
+      rawText = await extractTextFromBuffer(file.buffer, file.originalname);
+    } catch (err: any) {
+      await db.updateCrawlJobProgress({
+        jobId: job.id,
+        pagesVisited: 1,
+        pagesStored: 0,
+        chunksStored: 0,
+      });
+      await db.markCrawlJobFailed(
+        job.id,
+        clampErrorMessage(`Could not extract text: ${err?.message || 'unknown error'}`),
+      );
+      return res.status(400).json({
+        error: `Could not extract text: ${err?.message || 'unknown error'}`,
+        jobId: job.id,
+      });
+    }
+
+    const cleanedText = rawText
+      .replace(/\r\n/g, '\n')
+      .replace(/\n{3,}/g, '\n\n')
+      .replace(/[ \t]+/g, ' ')
+      .replace(/\n[ \t]+/g, '\n')
+      .trim();
+
+    if (!cleanedText || cleanedText.length < config.crawl.minChars) {
+      await db.updateCrawlJobProgress({
+        jobId: job.id,
+        pagesVisited: 1,
+        pagesStored: 0,
+        chunksStored: 0,
+      });
+      await db.markCrawlJobCompleted(job.id);
+
+      return res.status(200).json({
+        status: 'skipped',
+        reason: `Document text too short (${cleanedText.length} chars, min=${config.crawl.minChars})`,
+        jobId: job.id,
+      });
+    }
+
+    const { chunksCreated, chunksStored } = await ingestTextForClient({
+      text: cleanedText,
+      url: startUrl,
+      domain: namespaceDomain,
+      sourceId: buildSourceId({
+        clientId: client.id,
+        jobId: job.id,
+        url: startUrl,
+      }),
+      client,
+      deps: { config, db, embeddings },
+    });
+
+    await db.updateCrawlJobProgress({
+      jobId: job.id,
+      pagesVisited: 1,
+      pagesStored: chunksCreated > 0 ? 1 : 0,
+      chunksStored: Number(chunksStored ?? 0),
+    });
+
+    await db.markCrawlJobCompleted(job.id);
+
+    return res.status(200).json({
+      status: 'ok',
+      message: 'Document processed',
+      fileName: file.originalname,
+      namespaceDomain,
+      chunksCreated,
+      chunksAttempted: chunksStored,
+      jobId: job.id,
+    });
+  } catch (err) {
+    logger.error('Error in /upload-document', err);
+    return res.status(500).json({ error: 'Internal error' });
+  }
+});
+
+// --- Search ---
+app.post('/search', requireInternalAuth, async (req, res) => {
+  try {
+    const {
+      clientId,
+      query,
+      domainInput,
+      limit,
+      strategy,
+      candidateLimit,
+      finalLimit,
+      returnDebug,
+      ftsLanguage,
+      includeAdjacent,
+      adjacentWindow,
+      stitchChunks,
+      dedupeResults,
+      diversifySources,
+      maxPerSource,
+      nearDuplicateThreshold,
+      adaptiveLimit,
+      minLimit,
+      maxLimit,
+      contextTokenBudget,
+      minConfidenceLevel,
+      noAnswerOnLowConfidence,
+    } = req.body;
+    if (!clientId || !query) {
+      return res.status(400).json({ error: 'clientId and query are required' });
+    }
+
+    const domain = extractDomain(domainInput);
+
+    const client = await db.getClientById(clientId);
+
+    if (!client) return res.status(404).json({ error: 'Client not found' });
+
+    const serviceResponse = await searchClientContent({
+      db,
+      embeddings,
+      client,
+      query,
+      options: {
+        domain,
+        limit: typeof limit === 'number' ? limit : undefined,
+        strategy:
+          strategy === 'hybrid' || strategy === 'vector' ? strategy : undefined,
+        candidateLimit:
+          typeof candidateLimit === 'number' ? candidateLimit : undefined,
+        finalLimit: typeof finalLimit === 'number' ? finalLimit : undefined,
+        returnDebug: returnDebug === true,
+        ftsLanguage: typeof ftsLanguage === 'string' ? ftsLanguage : undefined,
+        includeAdjacent: includeAdjacent === true,
+        adjacentWindow:
+          typeof adjacentWindow === 'number' ? adjacentWindow : undefined,
+        stitchChunks:
+          typeof stitchChunks === 'boolean' ? stitchChunks : undefined,
+        dedupeResults: dedupeResults === true,
+        diversifySources: diversifySources === true,
+        maxPerSource: typeof maxPerSource === 'number' ? maxPerSource : undefined,
+        nearDuplicateThreshold:
+          typeof nearDuplicateThreshold === 'number'
+            ? nearDuplicateThreshold
+            : undefined,
+        adaptiveLimit: adaptiveLimit === true,
+        minLimit: typeof minLimit === 'number' ? minLimit : undefined,
+        maxLimit: typeof maxLimit === 'number' ? maxLimit : undefined,
+        contextTokenBudget:
+          typeof contextTokenBudget === 'number'
+            ? contextTokenBudget
+            : undefined,
+        minConfidenceLevel:
+          minConfidenceLevel === 'high' ||
+          minConfidenceLevel === 'medium' ||
+          minConfidenceLevel === 'low'
+            ? minConfidenceLevel
+            : undefined,
+        noAnswerOnLowConfidence: noAnswerOnLowConfidence === true,
+      },
+    });
+
+    const payload = buildSearchHttpResponse({
+      serviceResponse,
+      returnDebug: returnDebug === true,
+    });
+    return res.json(payload);
+  } catch (err) {
+    logger.error('Error in /search', err);
+    return res.status(500).json({ error: 'Internal error' });
+  }
+});
+
+function computeChunkHash(text: string): string {
+  return crypto.createHash('sha256').update(text).digest('hex');
+}
+
+// --- Chunks by job ---
+app.get('/chunks/by-job', requireInternalAuth, async (req, res) => {
+  try {
+    const clientId = String(req.query.clientId || '').trim();
+    const jobId = String(req.query.jobId || '').trim();
+    if (!clientId || !jobId) {
+      return res.status(400).json({ error: 'clientId and jobId are required' });
+    }
+
+    const client = await db.getClientById(clientId);
+    if (!client) return res.status(404).json({ error: 'Client not found' });
+
+    const job = await db.getCrawlJobById(jobId);
+    if (!job || job.clientId !== clientId) {
+      return res.status(404).json({ error: 'Job not found' });
+    }
+
+    const jobType = inferJobType(job.startUrl);
+    let chunks;
+    if (jobType === 'docs') {
+      chunks = await db.listChunksForClientByUrl({
+        clientId,
+        url: job.startUrl,
+      });
+    } else {
+      const normalizedDomain = extractDomain(job.domain || job.startUrl);
+      chunks = await db.listChunksForClientByDomain({
+        clientId,
+        domain: normalizedDomain,
+      });
+    }
+
+    return res.json({ jobId, jobType, chunks });
+  } catch (err) {
+    logger.error('Error in GET /chunks/by-job', err);
+    return res.status(500).json({ error: 'Internal error' });
+  }
+});
+
+// --- Update single chunk text (hard update) ---
+app.post('/chunks/update', requireInternalAuth, async (req, res) => {
+  try {
+    const { clientId, chunkId, text } = req.body as {
+      clientId?: string;
+      chunkId?: string;
+      text?: string;
+    };
+
+    if (!clientId || !chunkId || !text) {
+      return res.status(400).json({ error: 'clientId, chunkId, and text are required' });
+    }
+
+    const client = await db.getClientById(clientId);
+    if (!client) return res.status(404).json({ error: 'Client not found' });
+
+    const cleanedText = String(text).trim();
+    if (!cleanedText) return res.status(400).json({ error: 'text is empty' });
+
+    const { vectors, usage } = await embeddings.embedBatch(
+      [cleanedText],
+      client.embeddingModel,
+    );
+
+    if (usage && usage.totalTokens > 0) {
+      await db.recordUsage({
+        clientId,
+        model: client.embeddingModel,
+        operation: 'embeddings_edit',
+        promptTokens: usage.promptTokens,
+        totalTokens: usage.totalTokens,
+      });
+    }
+
+    const chunkHash = computeChunkHash(cleanedText);
+
+    let updated;
+    try {
+      updated = await db.updateChunkForClient({
+        clientId,
+        chunkId,
+        text: cleanedText,
+        chunkHash,
+        embedding: vectors[0],
+      });
+    } catch (err: any) {
+      if (err?.code === '23505') {
+        return res.status(409).json({ error: 'Chunk text already exists for this client' });
+      }
+      throw err;
+    }
+
+    if (!updated) return res.status(404).json({ error: 'Chunk not found' });
+
+    return res.json({ chunk: updated });
+  } catch (err) {
+    logger.error('Error in POST /chunks/update', err);
+    return res.status(500).json({ error: 'Internal error' });
+  }
+});
+
+// --- Delete single chunk (hard delete) ---
+app.post('/chunks/delete', requireInternalAuth, async (req, res) => {
+  try {
+    const { clientId, chunkId } = req.body as { clientId?: string; chunkId?: string };
+    if (!clientId || !chunkId) {
+      return res.status(400).json({ error: 'clientId and chunkId are required' });
+    }
+
+    const client = await db.getClientById(clientId);
+    if (!client) return res.status(404).json({ error: 'Client not found' });
+
+    const deleted = await db.deleteChunkForClient({ clientId, chunkId });
+    if (!deleted) return res.status(404).json({ error: 'Chunk not found' });
+
+    return res.json({ status: 'ok', chunkId });
+  } catch (err) {
+    logger.error('Error in POST /chunks/delete', err);
+    return res.status(500).json({ error: 'Internal error' });
+  }
+});
+
+// --- Deactivate chunks by crawl job (soft delete) ---
+app.post('/chunks/deactivate', requireInternalAuth, async (req, res) => {
+  try {
+    const { clientId, jobId } = req.body as { clientId?: string; jobId?: string };
+    if (!clientId || !jobId) {
+      return res.status(400).json({ error: 'clientId and jobId are required' });
+    }
+
+    const job = await db.getCrawlJobById(jobId);
+    if (!job || job.clientId !== clientId) {
+      return res.status(404).json({ error: 'Job not found' });
+    }
+
+    const jobType = inferJobType(job.startUrl);
+    let deactivated = 0;
+
+    if (jobType === 'docs') {
+      deactivated = await db.deactivateChunksForClientByUrl({
+        clientId,
+        url: job.startUrl,
+      });
+    } else {
+      const normalizedDomain = extractDomain(job.domain || job.startUrl);
+      deactivated = await db.deactivateChunksForClientByDomain({
+        clientId,
+        domain: normalizedDomain,
+      });
+    }
+
+    await db.markCrawlJobDeactivated(jobId);
+
+    return res.json({
+      status: 'ok',
+      jobId,
+      jobType,
+      deactivated,
+    });
+  } catch (err) {
+    logger.error('Error in POST /chunks/deactivate', err);
+    return res.status(500).json({ error: 'Internal error' });
+  }
+});
+
+
+// Helper per parse date query params
+function parseDateQueryParam(
+  value: string | undefined,
+  fieldName: string,
+  res: express.Response,
+): Date | undefined | null {
+  if (!value) return null;
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) {
+    res
+      .status(400)
+      .json({ error: `Invalid date format for "${fieldName}". Use ISO8601.` });
+    return undefined;
+  }
+  return d;
+}
+
+// 3) Endpoint per vedere l'uso dei token per un singolo client
+// Supporta:
+// - ?clientId=...              → tutto lo storico
+// - ?clientId=...&from=...&to=... → intervallo personalizzato
+// - ?clientId=...&period=month → mese corrente (real-time)
+app.get('/usage', requireInternalAuth, async (req, res) => {
+  try {
+    const clientId = req.query.clientId as string | undefined;
+
+    if (!clientId) {
+      return res.status(400).json({ error: 'clientId is required' });
+    }
+
+    const client = await db.getClientById(clientId);
+    if (!client) {
+      return res.status(404).json({ error: 'Client not found' });
+    }
+
+    const fromStr = req.query.from as string | undefined;
+    const toStr = req.query.to as string | undefined;
+    const period = (req.query.period as string | undefined)?.toLowerCase();
+
+    let from: Date | null = null;
+    let to: Date | null = null;
+
+    // If explicit from/to are provided, use them
+    if (fromStr) {
+      const parsed = parseDateQueryParam(fromStr, 'from', res);
+      if (parsed === undefined) return; // error already sent
+      from = parsed;
+    }
+    if (toStr) {
+      const parsed = parseDateQueryParam(toStr, 'to', res);
+      if (parsed === undefined) return; // error already sent
+      to = parsed;
+    }
+
+    // If no from/to but period=month, compute current month [startOfMonth, now]
+    if (!from && !to && period === 'month') {
+      const now = new Date();
+      const startOfMonthUtc = new Date(
+        Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0),
+      );
+      from = startOfMonthUtc;
+      to = now;
+    }
+
+    const summary = await db.getClientUsageSummary(clientId, from ?? null, to ?? null);
+
+    return res.json(summary);
+  } catch (err) {
+    console.error('Error in /usage', err);
+    return res.status(500).json({ error: 'Internal error' });
+  }
+});
+
+// 4) Endpoint per vedere l'uso dei token per tutti i client
+// Supporta:
+// - ?limit=50
+// - ?from=...&to=...
+// - ?period=month (mese corrente)
+app.get('/usage/clients', requireInternalAuth, async (req, res) => {
+  try {
+    const limitRaw = req.query.limit as string | undefined;
+    let limit = 100;
+
+    if (limitRaw) {
+      const parsed = Number.parseInt(limitRaw, 10);
+      if (!Number.isNaN(parsed) && parsed > 0) {
+        limit = Math.min(parsed, 1000); // hard cap
+      }
+    }
+
+    const fromStr = req.query.from as string | undefined;
+    const toStr = req.query.to as string | undefined;
+    const period = (req.query.period as string | undefined)?.toLowerCase();
+
+    let from: Date | null = null;
+    let to: Date | null = null;
+
+    if (fromStr) {
+      const parsed = parseDateQueryParam(fromStr, 'from', res);
+      if (parsed === undefined) return;
+      from = parsed;
+    }
+    if (toStr) {
+      const parsed = parseDateQueryParam(toStr, 'to', res);
+      if (parsed === undefined) return;
+      to = parsed;
+    }
+
+    if (!from && !to && period === 'month') {
+      const now = new Date();
+      const startOfMonthUtc = new Date(
+        Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0),
+      );
+      from = startOfMonthUtc;
+      to = now;
+    }
+
+    const usageList = await db.getAllClientsUsageSummary(
+      limit,
+      from ?? null,
+      to ?? null,
+    );
+
+    return res.json({ clients: usageList });
+  } catch (err) {
+    console.error('Error in /usage/clients', err);
+    return res.status(500).json({ error: 'Internal error' });
+  }
+});
+
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
+  logger.info(`Knowledge backend listening on http://localhost:${PORT}`);
+});
